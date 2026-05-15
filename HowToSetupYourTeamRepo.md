@@ -3,7 +3,7 @@
 * One repository per team.
 * One member of the team:
 	1. clones https://github.com/bcs-s2-2026/capstone-corpus-forge
-	2. creates a new GitHub repository named 'capstone-corpus-forge'. The repository must be public to give easy access to the other members of the team.
+	2. creates a new GitHub repository named 'corpus-forge'. The repository must be public to give easy access to the other members of the team.
 	3. links the cloned capstone project repository (1) to the new repository in (2).
 * The other members of the team clone the newly created GitHub repository (2).
 * The team repository must be created and sent to me by the end of today's class.
