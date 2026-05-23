@@ -399,3 +399,12 @@
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:31
 - **Prompt**: as I am done with all file readers. I now want to wire them to Flask by implementing a POST /upload endpoint. Please guide me step by step without writing the full code for me. Start by helping me think through: (1) how Flask receives uploaded files compared to a local filepath, (2) how the endpoint should detect which reader to call based on file type, and (3) what the endpoint should return as a response.
+- **CoPilot Mode**: Ask
+- **CoPilot Model**: GPT-5.4 mini
+- **Changes Made**: No code changes. Reviewed existing project context and prepared step-by-step guidance for the Flask upload endpoint.
+- **Context and Reasons for Changes**: User wants to wire completed file readers into Flask via a POST /upload endpoint while avoiding a full code dump. Next guidance focuses on upload handling, reader dispatch by file type, and response design.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 23-05-2026 14:33
+- **Prompt**: implement todos for flask i will try to implement them
