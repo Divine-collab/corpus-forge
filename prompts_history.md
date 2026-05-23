@@ -10,3 +10,6 @@
 ### 23-05-2026 14:42
 - **Prompt**: i tried to implement some of the todos can you go through them and some are remaining which i didnt get can you implement them and explain me
 
+### 23-05-2026 14:45
+- **Prompt**: Not Found The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
