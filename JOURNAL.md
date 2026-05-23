@@ -415,5 +415,19 @@
 
 ### **New Interaction**
 - **Hook Version**: 1.02
+- **Date**: 23-05-2026 14:35
+- **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder
+- **CoPilot Mode**: Ask
+- **CoPilot Model**: GPT-5.4 mini
+- **Changes Made**: No code changes. Prepared a conceptual explanation about temporary upload storage versus permanent storage.
+- **Context and Reasons for Changes**: User is designing the Flask upload flow and wants to understand why temporary storage is usually preferred before processing.
+
+### **New Interaction**
+- **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:37
 - **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 23-05-2026 14:42
+- **Prompt**: i tried to implement some of the todos can you go through them and some are remaining which i didnt get can you implement them and explain me

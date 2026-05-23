@@ -7,3 +7,6 @@
 ### 23-05-2026 14:37
 - **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder
 
+### 23-05-2026 14:42
+- **Prompt**: i tried to implement some of the todos can you go through them and some are remaining which i didnt get can you implement them and explain me
+
