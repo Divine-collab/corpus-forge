@@ -40,3 +40,6 @@
 ### 23-05-2026 22:02
 - **Prompt**: implement the changes
 
+### 23-05-2026 22:05
+- **Prompt**: now i just need to test my flask is communicating with my database because on my end everything looks fine
+
