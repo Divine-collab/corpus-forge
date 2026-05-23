@@ -114,6 +114,9 @@ def upload_file():
 			'success': True,
 			'reader': reader.__class__.__name__,
 			'file_name': result.get('file_name'),
+            'contributor': 'Muhammad Saim Chaudhary',
+            'note': 'Added contribuotr Tracking to API response',
+   
 			'result': result,
 		}
 		return jsonify(response), 200
