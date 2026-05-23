@@ -28,3 +28,6 @@
 ### 23-05-2026 21:48
 - **Prompt**: i have created a table and database walk me through the next step
 
+### 23-05-2026 21:50
+- **Prompt**: i will go with mysql-connector-python because i have previously worked with it
+
