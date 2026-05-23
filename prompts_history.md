@@ -34,3 +34,6 @@
 ### 23-05-2026 21:52
 - **Prompt**: i suggest to create one helper function for connection and one helper for insert
 
+### 23-05-2026 22:01
+- **Prompt**: i created db.py and did some changes in main.py can you go through it
+

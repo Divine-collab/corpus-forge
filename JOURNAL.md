@@ -507,6 +507,15 @@
 
 ### **New Interaction**
 - **Hook Version**: 1.02
+- **Date**: 23-05-2026 22:00
+- **Prompt**: i suggest to create one helper function for connection and one helper for insert
+- **CoPilot Mode**: Ask
+- **CoPilot Model**: GPT-5.4 mini
+- **Changes Made**: No code changes. Logged the preferred database helper structure: one function for connection and one for inserts.
+- **Context and Reasons for Changes**: User suggested a clean separation between connection setup and row insertion. This aligns with separation of concerns and will make the Flask route easier to read and test.
+
+### **New Interaction**
+- **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:48
 - **Prompt**: i have created a table and database walk me through the next step
 
@@ -519,3 +528,8 @@
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:52
 - **Prompt**: i suggest to create one helper function for connection and one helper for insert
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 23-05-2026 22:01
+- **Prompt**: i created db.py and did some changes in main.py can you go through it
