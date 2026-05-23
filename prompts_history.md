@@ -19,3 +19,6 @@
 ### 23-05-2026 21:39
 - **Prompt**: My file readers are done and Flask . I now want to implement the database to persist the data my readers produce (raw_text, cleaned_text, word_count, filename, file_type, file_size, upload_date). Guide me step by step without writing the full code for me.
 
+### 23-05-2026 21:41
+- **Prompt**: you suggested sqlite but i would like to stick with mysql as i have worked with mysql it will be easy for me.
+
