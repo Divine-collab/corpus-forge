@@ -153,6 +153,7 @@ def upload_file():
 
 
 # I took this function from other AI. It basically tests whether the DB connection works. You can run it to verify your DB config is correct.
+# personally i verified the connection by running main.py and curl.exe -X POST http://127.0.0.1:5000/upload -F "file=@notes.txt" and checking the DB for the new record.
 @app.route("/test-db", methods=["GET"])
 def test_db():
     from db import get_db_connection
