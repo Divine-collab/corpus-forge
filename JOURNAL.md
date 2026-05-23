@@ -394,3 +394,8 @@
   - Test Results: TEST 1 (Reading PDF) ✅ - Successfully extracted text from 2-page PDF, counted 68 words, showed file metadata. TEST 2 (File Not Found) ✅ - Correctly returned "File does not exist" error. TEST 3 (Empty PDF) ✅ - Handled correctly.
   - All three reader classes now complete and tested: TextReader ✅, CodeReader ✅, PdfReader ✅
   - Progress: 3/7 core readers completed. Next: ReaderFactory implementation.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 23-05-2026 14:31
+- **Prompt**: as I am done with all file readers. I now want to wire them to Flask by implementing a POST /upload endpoint. Please guide me step by step without writing the full code for me. Start by helping me think through: (1) how Flask receives uploaded files compared to a local filepath, (2) how the endpoint should detect which reader to call based on file type, and (3) what the endpoint should return as a response.
