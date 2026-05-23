@@ -31,3 +31,6 @@
 ### 23-05-2026 21:50
 - **Prompt**: i will go with mysql-connector-python because i have previously worked with it
 
+### 23-05-2026 21:52
+- **Prompt**: i suggest to create one helper function for connection and one helper for insert
+

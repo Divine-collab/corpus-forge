@@ -498,6 +498,15 @@
 
 ### **New Interaction**
 - **Hook Version**: 1.02
+- **Date**: 23-05-2026 21:58
+- **Prompt**: i will go with mysql-connector-python because i have previously worked with it
+- **CoPilot Mode**: Ask
+- **CoPilot Model**: GPT-5.4 mini
+- **Changes Made**: No code changes. Recorded the decision to use `mysql-connector-python` for MySQL integration.
+- **Context and Reasons for Changes**: User prefers `mysql-connector-python` based on prior experience, which keeps the implementation simpler and aligns with their comfort level.
+
+### **New Interaction**
+- **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:48
 - **Prompt**: i have created a table and database walk me through the next step
 
@@ -505,3 +514,8 @@
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:50
 - **Prompt**: i will go with mysql-connector-python because i have previously worked with it
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 23-05-2026 21:52
+- **Prompt**: i suggest to create one helper function for connection and one helper for insert
