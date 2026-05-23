@@ -408,3 +408,12 @@
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:33
 - **Prompt**: implement todos for flask i will try to implement them
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Changes Made**: Added a Flask TODO scaffold in `main.py` for the POST /upload endpoint, including placeholder helper sections, route structure, and implementation checklist.
+- **Context and Reasons for Changes**: User asked for Flask TODOs rather than a full endpoint implementation. The scaffold keeps the project backend-first and gives a clear sequence for implementing file validation, reader dispatch, temporary saving, and JSON responses.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 23-05-2026 14:37
+- **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder

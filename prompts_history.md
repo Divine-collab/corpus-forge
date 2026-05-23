@@ -4,3 +4,6 @@
 ### 23-05-2026 14:33
 - **Prompt**: implement todos for flask i will try to implement them
 
+### 23-05-2026 14:37
+- **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder
+
