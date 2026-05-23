@@ -15,6 +15,8 @@ from Code_reader import CodeReader
 from Pdf_reader import PdfReader
 from Text_reader import TextReader
 
+from db import insert_uploaded_file
+
 
 app = Flask(__name__)
 
@@ -110,6 +112,19 @@ def upload_file():
 			return jsonify({'success': False, 'error': result.get('error')}), 422
 
 		# 6) Normal success response
+		file_size = os.path.getsize(temp_file.name)
+		db_id = insert_uploaded_file(filename=filename,
+            file_type=result.get('file_type', ext),
+            file_size=file_size,
+            raw_text=result.get('raw_text', ''),
+            cleaned_text=result.get('cleaned_text', ''),
+            word_count=result.get('word_count', 0)
+        )
+
+		# If DB insert failed, surface an error to the client
+		if db_id is None:
+			return jsonify({'success': False, 'error': 'Failed to persist record to database'}), 500
+
 		response = {
 			'success': True,
 			'reader': reader.__class__.__name__,
@@ -136,6 +151,18 @@ def upload_file():
 # - unsupported extension
 # - file read failure from a reader
 
+
+# I took this function from other AI. It basically tests whether the DB connection works. You can run it to verify your DB config is correct.
+@app.route("/test-db", methods=["GET"])
+def test_db():
+    from db import get_db_connection
+    connection = get_db_connection()
+    if connection and connection.is_connected():
+        connection.close()
+        return jsonify({"status": "✅ Connected to corpus_forge successfully"}), 200
+    else:
+        return jsonify({"status": "❌ Connection failed"}), 500
+	
 
 if __name__ == "__main__":
 	# TODO: decide whether debug=True should stay on while developing.
