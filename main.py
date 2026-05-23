@@ -11,73 +11,31 @@ import tempfile
 from flask import Flask, jsonify, request
 from werkzeug.utils import secure_filename
 
-from Code_reader import CodeReader
-from Pdf_reader import PdfReader
-from Text_reader import TextReader
-
+from reader_factory import ReaderFactory
+from search_layer import SearchQuery, SearchLayer, SearchLayerAPI
 from db import insert_uploaded_file
 
 
 app = Flask(__name__)
 
 
-# TODO: add upload configuration here.
-# - choose an upload folder
-# - define allowed extensions
-# - decide whether temporary files should be deleted after processing
-
 UPLOAD_FOLDER = tempfile.gettempdir()
-
-ALLOWED_EXTENSIONS = {".txt", ".md", ".pdf", ".py", ".js"}
-
-# TODO: add a small helper that returns the file extension in lowercase.
-# This will help you decide which reader to call.
-
-def get_file_extension(filename):
-		"""Return the extension including the leading dot, lowercased.
-
-		Examples:
-			'doc.md' -> '.md'
-			'archive' -> ''
-		"""
-		return os.path.splitext(filename)[1].lower()
-
-
-# TODO: add a small helper that maps extensions to readers.
-# Suggested mapping:
-# - .txt / .md -> TextReader
-# - .pdf -> PdfReader
-# - .py / .js -> CodeReader
-def get_reader_for_extension(extension):
-	"""Return the Reader class for a given extension (or None).
-
-	Note: returns the class (not an instance) so the caller can
-	instantiate it with the temporary filepath.
-	"""
-	if extension in {".txt", ".md"}:
-		return TextReader
-	if extension == ".pdf":
-		return PdfReader
-	if extension in {".py", ".js"}:
-		return CodeReader
-	return None
 
 
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
 	"""
-	Handle an uploaded file and route it to the correct reader.
-
-	TODO steps:
+	Handle an uploaded file and route it to the correct reader using ReaderFactory.
+	
+	Steps:
 	1. Check whether 'file' exists in request.files.
 	2. Reject empty filenames.
-	3. Inspect the extension.
-	4. Reject unsupported file types.
-	5. Save the upload temporarily if your readers need a filepath.
-	6. Call the appropriate reader.
+	3. Save the upload temporarily.
+	4. Use ReaderFactory to create the appropriate reader.
+	5. Call process() on the reader.
+	6. Store the result in the database.
 	7. Return the reader result as JSON.
-	8. Return clear JSON errors for invalid requests.
 	"""
 	# 1) Basic request validation
 	if 'file' not in request.files:
@@ -88,43 +46,43 @@ def upload_file():
 	if filename == "":
 		return jsonify({'success': False, 'error': 'No selected file'}), 400
 
-	# 2) Determine extension and reader
-	ext = get_file_extension(filename)
-	if not ext or ext not in ALLOWED_EXTENSIONS:
-		return jsonify({'success': False, 'error': f'Unsupported file type: {ext}'}), 400
-
-	reader_cls = get_reader_for_extension(ext)
-	if reader_cls is None:
-		return jsonify({'success': False, 'error': 'No reader available for this file type'}), 400
-
-	# 3) Save upload to a temporary file (reader implementations expect a filepath)
+	# 2) Save upload to a temporary file (reader implementations expect a filepath)
+	ext = ReaderFactory.get_extension(filename)
 	temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext, dir=UPLOAD_FOLDER)
 	temp_file.close()
+	
 	try:
 		file.save(temp_file.name)
 
-		# 4) Instantiate reader and process
-		reader = reader_cls(temp_file.name)
+		# 3) Use ReaderFactory to create the appropriate reader
+		try:
+			reader = ReaderFactory.create_reader(temp_file.name)
+		except (ValueError, FileNotFoundError) as e:
+			return jsonify({'success': False, 'error': str(e)}), 400
+
+		# 4) Process the file
 		result = reader.process()
 
 		# 5) If reader reported an error, surface it with 422 (unprocessable entity)
 		if isinstance(result, dict) and result.get('error'):
 			return jsonify({'success': False, 'error': result.get('error')}), 422
 
-		# 6) Normal success response
+		# 6) Store in database
 		file_size = os.path.getsize(temp_file.name)
-		db_id = insert_uploaded_file(filename=filename,
-            file_type=result.get('file_type', ext),
-            file_size=file_size,
-            raw_text=result.get('raw_text', ''),
-            cleaned_text=result.get('cleaned_text', ''),
-            word_count=result.get('word_count', 0)
-        )
+		db_id = insert_uploaded_file(
+			filename=filename,
+			file_type=result.get('file_type', ext),
+			file_size=file_size,
+			raw_text=result.get('raw_text', ''),
+			cleaned_text=result.get('cleaned_text', ''),
+			word_count=result.get('word_count', 0)
+		)
 
 		# If DB insert failed, surface an error to the client
 		if db_id is None:
 			return jsonify({'success': False, 'error': 'Failed to persist record to database'}), 500
 
+		# 7) Return success response
 		response = {
 			'success': True,
 			'reader': reader.__class__.__name__,
@@ -143,6 +101,105 @@ def upload_file():
 			os.remove(temp_file.name)
 		except Exception:
 			pass
+
+
+@app.route("/search", methods=["POST"])
+def search():
+	"""
+	Search endpoint for finding documents by keyword and filters.
+	
+	Request JSON parameters:
+	{
+		"keyword": "string" (required if no date filters),
+		"file_type": ".pdf" (optional),
+		"start_date": "2026-05-01" (optional, YYYY-MM-DD),
+		"end_date": "2026-05-31" (optional, YYYY-MM-DD)
+	}
+	
+	Returns:
+	{
+		"success": bool,
+		"total_found": int,
+		"query": string,
+		"results": [
+			{
+				"file_id": int,
+				"file_name": string,
+				"file_type": string,
+				"file_size": int,
+				"word_count": int,
+				"upload_date": string,
+				"cleaned_text_preview": string,
+				"match_score": float
+			}
+		],
+		"error": string (if error)
+	}
+	"""
+	try:
+		# Get JSON request data
+		data = request.get_json()
+		if not data:
+			return jsonify({'success': False, 'error': 'Request must be JSON'}), 400
+		
+		# Extract search parameters
+		keyword = data.get('keyword', '').strip()
+		file_type = data.get('file_type')
+		start_date = data.get('start_date')
+		end_date = data.get('end_date')
+		
+		# Create search query
+		query = SearchQuery(
+			keyword=keyword,
+			file_type=file_type,
+			start_date=start_date,
+			end_date=end_date
+		)
+		
+		# Validate query
+		if not query.is_valid():
+			return jsonify({
+				'success': False,
+				'error': 'Query must include keyword and/or date range'
+			}), 400
+		
+		# Execute search
+		result = SearchLayer.search(query)
+		
+		# Return results with appropriate status code
+		if result['success']:
+			return jsonify(result), 200
+		else:
+			return jsonify(result), 400
+	
+	except Exception as e:
+		return jsonify({'success': False, 'error': f'Search error: {str(e)}'}), 500
+
+
+@app.route("/list-documents", methods=["GET"])
+def list_documents():
+	"""
+	List all uploaded documents with optional file type filter.
+	
+	Query parameters:
+	- file_type: optional filter by file type (e.g., '.pdf')
+	- limit: max number of results (default 50)
+	
+	Returns list of documents with metadata.
+	"""
+	try:
+		file_type = request.args.get('file_type')
+		limit = request.args.get('limit', default=50, type=int)
+		
+		result = SearchLayerAPI.list_all_documents(file_type=file_type, limit=limit)
+		
+		if result['success']:
+			return jsonify(result), 200
+		else:
+			return jsonify(result), 400
+	
+	except Exception as e:
+		return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
 
 
 # TODO: add error handlers for common upload problems.

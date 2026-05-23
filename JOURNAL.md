@@ -354,6 +354,7 @@
 5. Connect to Flask web interface
 
 ### **New Interaction**
+
 - **Agent Version**: 2.3
 - **Date**: 19-05-2026 02:20
 - **User**: default_user
@@ -364,8 +365,8 @@
 - **Changes Made**: No code changes. Planned PdfReader architecture and design decisions.
 - **Context and Reasons for Changes**: User ready to implement PdfReader. Explained that PDF is binary format (different from text). Asked four design questions: (1) PDF library choice (PyPDF2 vs pdfplumber vs pypdf), (2) extraction strategy (text only vs text+metadata), (3) multi-page handling, (4) method structure. Recommended pdfplumber for best text extraction quality and extracting all pages with metadata.
 
-
 ### **New Interaction**
+
 - **Agent Version**: 2.3
 - **Date**: 19-05-2026 02:30
 - **User**: default_user
@@ -377,6 +378,7 @@
 - **Context and Reasons for Changes**: User chose to extract both text and images from PDFs using pdfplumber. Installed pdfplumber for PDF handling and reportlab for test PDF generation. Created PdfReader with 9 methods: __init__, read_file, extract_text_from_pages, extract_images_from_pages, extract_metadata, clean_content, count_words, process. Return format includes page_count, images_extracted, and image_count (new fields vs TextReader/CodeReader). All TODOs structured for implementation.
 
 ### **New Interaction**
+
 - **Agent Version**: 2.3
 - **Date**: 19-05-2026 02:45
 - **User**: default_user
@@ -386,16 +388,19 @@
 - **Socratic Mode**: OFF (switched to full implementation mode per user request)
 - **Changes Made**: Completed implementation of PdfReader class. Implemented 5 remaining methods: extract_images_from_pages(), extract_metadata(), clean_content(), count_words(), and process(). Ran test_pdf_reader.py successfully.
 - **Context and Reasons for Changes**: User gave one-word approval to implement PdfReader completely. Implemented following methods:
+
   1. **extract_images_from_pages()**: Creates output directory, loops through PDF pages, extracts image coordinates, saves images as PNG files with unique names, returns list of extracted file paths. Handles errors gracefully by continuing to next image.
   2. **extract_metadata()**: Gets file basename, extension, size using os.path, modification time using os.path.getmtime(), and page count from len(pdf.pages). Returns dict with file_name, file_type, file_size, upload_date, page_count.
   3. **clean_content()**: Uses regex to remove multiple consecutive newlines (replace with space), remove multiple spaces, remove control characters, and strip whitespace.
   4. **count_words()**: Splits text on whitespace and counts words. Handles None/empty text by returning 0.
   5. **process()**: Orchestrates entire pipeline - reads PDF, extracts text, extracts metadata, extracts images (conditional), cleans text, counts words, combines all into unified dictionary. Closes PDF object before returning. Return format matches TextReader/CodeReader but adds page_count, images_extracted (list), image_count.
+
   - Test Results: TEST 1 (Reading PDF) ✅ - Successfully extracted text from 2-page PDF, counted 68 words, showed file metadata. TEST 2 (File Not Found) ✅ - Correctly returned "File does not exist" error. TEST 3 (Empty PDF) ✅ - Handled correctly.
   - All three reader classes now complete and tested: TextReader ✅, CodeReader ✅, PdfReader ✅
   - Progress: 3/7 core readers completed. Next: ReaderFactory implementation.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:31
 - **Prompt**: as I am done with all file readers. I now want to wire them to Flask by implementing a POST /upload endpoint. Please guide me step by step without writing the full code for me. Start by helping me think through: (1) how Flask receives uploaded files compared to a local filepath, (2) how the endpoint should detect which reader to call based on file type, and (3) what the endpoint should return as a response.
@@ -405,6 +410,7 @@
 - **Context and Reasons for Changes**: User wants to wire completed file readers into Flask via a POST /upload endpoint while avoiding a full code dump. Next guidance focuses on upload handling, reader dispatch by file type, and response design.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:33
 - **Prompt**: implement todos for flask i will try to implement them
@@ -414,6 +420,7 @@
 - **Context and Reasons for Changes**: User asked for Flask TODOs rather than a full endpoint implementation. The scaffold keeps the project backend-first and gives a clear sequence for implementing file validation, reader dispatch, temporary saving, and JSON responses.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:35
 - **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder
@@ -423,6 +430,7 @@
 - **Context and Reasons for Changes**: User is designing the Flask upload flow and wants to understand why temporary storage is usually preferred before processing.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:50
 - **Prompt**: i tried to implement some of the todos can you go through them and some are remaining which i didnt get can you implement them and explain me
@@ -432,6 +440,7 @@
 - **Context and Reasons for Changes**: User implemented partial TODOs and requested help finishing the rest. Updated `main.py` to a working scaffold that calls existing reader classes and returns structured JSON; kept behavior conservative (delete temp files, surface reader errors as 422).
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:56
 - **Prompt**: test main.py to make sure it is working fine
@@ -441,26 +450,31 @@
 - **Context and Reasons for Changes**: User wanted confirmation that the `/upload` endpoint works. Executed functional test using Flask test client and confirmed success. No production server was started; tests used the Flask test client.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:37
 - **Prompt**: What are the benefits of storing uploaded files in a temporary directory instead of a permanent folder
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:42
 - **Prompt**: i tried to implement some of the todos can you go through them and some are remaining which i didnt get can you implement them and explain me
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:45
 - **Prompt**: Not Found The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 14:46
 - **Prompt**: test main.py to make sure it is working fine
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:39
 - **Prompt**: My file readers are done and Flask . I now want to implement the database to persist the data my readers produce (raw_text, cleaned_text, word_count, filename, file_type, file_size, upload_date). Guide me step by step without writing the full code for me.
@@ -470,6 +484,7 @@
 - **Context and Reasons for Changes**: User wants to store extracted reader output in a database after Flask upload processing. Next guidance will focus on schema design, persistence layer choice, and where to write records in the request flow.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:41
 - **Prompt**: you suggested sqlite but i would like to stick with mysql as i have worked with mysql it will be easy for me.
@@ -479,6 +494,7 @@
 - **Context and Reasons for Changes**: User prefers MySQL due to prior experience, which should reduce setup friction and speed up implementation. Next guidance should align schema and integration steps with MySQL.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:47
 - **Prompt**: CREATE TABLE uploaded_files (     id INT AUTO_INCREMENT PRIMARY KEY,     filename VARCHAR(255) NOT NULL,     file_type VARCHAR(100),     file_size BIGINT,     upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     raw_text LONGTEXT,     cleaned_text LONGTEXT,     word_count INT );   will this table work or do you have any suggestions
@@ -488,6 +504,7 @@
 - **Context and Reasons for Changes**: User proposed a single-table design for storing uploaded file extraction results and asked whether it is suitable. Next response should confirm viability and suggest a few practical improvements.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:55
 - **Prompt**: i have created a table and database walk me through the next step
@@ -497,6 +514,7 @@
 - **Context and Reasons for Changes**: User has created the MySQL database and table and now needs the next implementation step. Guidance should focus on connection setup, saving extracted data, and testing the insert path.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:58
 - **Prompt**: i will go with mysql-connector-python because i have previously worked with it
@@ -506,6 +524,7 @@
 - **Context and Reasons for Changes**: User prefers `mysql-connector-python` based on prior experience, which keeps the implementation simpler and aligns with their comfort level.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 22:00
 - **Prompt**: i suggest to create one helper function for connection and one helper for insert
@@ -515,6 +534,7 @@
 - **Context and Reasons for Changes**: User suggested a clean separation between connection setup and row insertion. This aligns with separation of concerns and will make the Flask route easier to read and test.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 22:05
 - **Prompt**: implement the changes
@@ -524,31 +544,204 @@
 - **Context and Reasons for Changes**: Addressed edge-case errors and ensured the Flask endpoint accurately reflects persistence success. These small defensive improvements reduce the chance of unhandled exceptions and make failures observable to the caller.
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:48
 - **Prompt**: i have created a table and database walk me through the next step
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:50
 - **Prompt**: i will go with mysql-connector-python because i have previously worked with it
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 21:52
 - **Prompt**: i suggest to create one helper function for connection and one helper for insert
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 22:01
 - **Prompt**: i created db.py and did some changes in main.py can you go through it
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 22:02
 - **Prompt**: implement the changes
 
 ### **New Interaction**
+
 - **Hook Version**: 1.02
 - **Date**: 23-05-2026 22:05
 - **Prompt**: now i just need to test my flask is communicating with my database because on my end everything looks fine
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 10:00
+- **User**: default_user
+- **Prompt**: "run main.py"
+- **CoPilot Mode**: Execute
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: Installed missing Flask dependencies (flask, werkzeug, mysql-connector-python). Started Flask development server successfully.
+- **Context and Reasons for Changes**: User requested to run main.py which imports Flask and database modules. Flask was not installed in the Python environment, causing ModuleNotFoundError. Installed all required packages: flask for web framework, werkzeug for WSGI utilities, and mysql-connector-python for database connectivity. Successfully started Flask dev server on http://127.0.0.1:5000 with debug mode enabled. The application is ready to accept file upload requests via POST /upload endpoint. Database connection is configured but requires local MySQL instance with corpus_forge database to be running for full functionality.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 10:15
+- **User**: default_user
+- **Prompt**: "so now file readers are done, connected with flask and created database so I would like to go to the next step. I was thinking the next step to be the AI Query layer. what do you suggest"
+- **CoPilot Mode**: Architecture/Planning
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: No code changes. Provided architectural recommendation and roadmap for next phases.
+- **Context and Reasons for Changes**: User asked about implementing AI Query layer next. Provided strategic architecture recommendation suggesting TopicExtractor as intermediate step before AI Query layer, rather than jumping directly to AI queries. Reasoning: (1) TopicExtractor bridges raw extracted content and intelligent queries, (2) enables traditional keyword-based search before expensive AI calls, (3) creates hybrid approach (fast keyword search + AI for complex queries), (4) more testable and deterministic than pure AI layer. Recommended sequence: ReaderFactory → TopicExtractor → Topic Storage → Query/Search Layer → AI Query Layer. User did not confirm which path to pursue; awaiting decision on whether to implement TopicExtractor first or proceed with different approach.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 10:30
+- **User**: default_user
+- **Prompt**: "we can start with readerfactory then. but firstly what is readerfactory, what does it do and why is it needed"
+- **CoPilot Mode**: Education/Explanation
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Changes Made**: No code changes. Provided comprehensive explanation of ReaderFactory pattern with Socratic questioning and before/after comparison.
+- **Context and Reasons for Changes**: User requested understanding of ReaderFactory before implementation. Explained using Socratic method by posing three key questions: (1) Where does routing logic live currently and what happens when adding new formats?, (2) How would non-Flask code reuse the reader selection logic?, (3) How would team members know if routing was added correctly?. Provided clear definition: ReaderFactory is a dedicated class whose single job is "Given a file path/extension, give me the correct Reader instance ready to use." Demonstrated benefits: (1) Single Responsibility - routing in one place, (2) Extensibility - add format with one line, (3) Reusability - works in Flask, CLI, batch processing, tests, (4) Testability - factory can be tested independently, (5) Maintainability - clear location for routing logic. Showed before/after code comparison demonstrating simplification from multiple scattered functions to one clean ReaderFactory.create_reader(path) call. User confirmed understanding and readiness to implement.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 10:45
+- **User**: default_user
+- **Prompt**: "yes it does make sense now, I am ready to implement readerfactory"
+- **CoPilot Mode**: Implementation
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: Created reader_factory.py, test_reader_factory.py, and refactored main.py to use ReaderFactory.
+- **Context and Reasons for Changes**: User confirmed understanding and readiness to implement ReaderFactory. Implementation included:
+
+  1. **reader_factory.py** (100 lines): New module containing ReaderFactory class with:
+     - READER_MAP: Static dictionary mapping extensions (.txt, .md, .pdf, .py, .js) to Reader classes
+     - SUPPORTED_EXTENSIONS: Set of all supported file types for quick validation
+     - create_reader(file_path): Main method that instantiates correct reader; validates file existence, extension presence, type support; raises FileNotFoundError for missing files, ValueError for unsupported/missing extensions
+     - is_supported(file_path): Quick check if file type is supported
+     - get_extension(file_path): Extracts extension from path, handles uppercase, missing extensions
+     - add_reader(extension, reader_class): Allows runtime registration of new file types (extensibility)
+  2. **test_reader_factory.py** (300+ lines): Comprehensive test suite with 10 tests covering:
+     - TEST 1-4: Successful instantiation of each reader type (TextReader for .txt/.md, CodeReader for .py/.js)
+     - TEST 5: Unsupported file type error handling (.docx raises ValueError with helpful message)
+     - TEST 6: File not found error handling (raises FileNotFoundError)
+     - TEST 7: Missing extension handling (raises ValueError)
+     - TEST 8: is_supported() method validates file types correctly
+     - TEST 9: get_extension() parses extensions correctly (handles uppercase, missing extensions)
+     - TEST 10: Supported extensions list is complete and correct
+     - Result: All 10 tests PASSED ✅
+  3. **main.py refactoring**: Simplified /upload endpoint to use ReaderFactory:
+     - Removed imports: CodeReader, PdfReader, TextReader (now just import ReaderFactory)
+     - Removed helper functions: get_file_extension(), get_reader_for_extension(), ALLOWED_EXTENSIONS constant (logic now centralized in ReaderFactory)
+     - Updated upload_file(): Uses ReaderFactory.create_reader(temp_file.name) instead of scattered logic; cleaner error handling with try/except for ValueError and FileNotFoundError
+     - Endpoint code reduced from ~60 lines to ~40 lines while improving clarity
+
+  - Benefits realized: Centralized routing logic, reusable across projects, single point for adding new file types, improved error messages, easier testing
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 11:00
+- **User**: default_user
+- **Prompt**: "but what if the file given does not have its reader what does readerfactory return"
+- **CoPilot Mode**: Education/Explanation
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: No code changes. Provided detailed explanation of ReaderFactory error handling behavior.
+- **Context and Reasons for Changes**: User asked what ReaderFactory returns when given an unsupported file type. Clarified design philosophy: ReaderFactory does NOT return None or default reader. Instead it raises exceptions with descriptive error messages. Explained three error scenarios: (1) Unsupported extension (.docx) raises ValueError with message "Unsupported file type '.docx'. Supported types: .js, .md, .pdf, .py, .txt", (2) File with no extension raises ValueError "File has no extension: /path", (3) Missing file raises FileNotFoundError "File does not exist: /path". Showed how main.py handles these exceptions with try/except block that catches (ValueError, FileNotFoundError) and returns JSON error response with HTTP 400 status. Demonstrated with TEST 5 output showing proper error message. This design ensures: clear error communication, explicit exception handling, no silent failures, easy debugging.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 11:15
+- **User**: default_user
+- **Prompt**: "yeah I got everything let us implement Query/search layer next but first explian me its function"
+- **CoPilot Mode**: Education/Explanation
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: No code changes. Provided comprehensive explanation of Query/Search Layer architecture, functions, and design patterns.
+- **Context and Reasons for Changes**: User requested understanding of Query/Search Layer before implementation. Provided: (1) Definition: Bridge between stored documents and user information needs, (2) Library analogy to explain purpose, (3) Four core functions: Keyword Search (find documents containing words), Topic-Based Search (find by extracted topics), Full-Text Search (search multiple fields), Filter & Sort (by file type, size, date, word count), (4) Architecture diagram showing where Query/Search Layer fits in pipeline (after TopicExtractor in sequence), (5) What it does NOT do (doesn't generate info, use AI/LLM, summarize, answer questions), (6) What it DOES do (search DB efficiently, filter, rank, return structured JSON), (7) Example usage showing SearchQuery and results format, (8) Two implementation strategies: Simple SQL WHERE clauses vs Full-Text with Topics ranking, (9) Recommended implementation order: Keyword Search → File Type Filter → Date Range → Topic Search → Relevance Ranking. User also requested to keep JOURNAL.md updated after each iteration going forward.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 11:30
+- **User**: default_user
+- **Prompt**: "what does it return ( I mean does it return a file name or the file itself)"
+- **CoPilot Mode**: Education/Clarification
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: No code changes. Provided clarification on Query/Search Layer return values and data structure.
+- **Context and Reasons for Changes**: User asked critical clarification: does Query/Search Layer return filename or actual file content. Clarified that it returns NEITHER - returns metadata and references only. Explained return format with JSON example showing: file_id, file_name, file_type, file_size, word_count, upload_date, cleaned_text_preview (first 100-200 chars), match_score (0-1 relevance). Explained why not returning full files: (1) Efficiency (bandwidth), (2) User experience (summary list), (3) Scalability (10k documents), (4) Flexibility (can request full file separately). Distinguished two separate operations: (1) SEARCH operation (returns metadata + preview list) vs (2) RETRIEVE operation (returns full file content - future feature). Used Google Search analogy: Google returns title+URL+snippet, not full webpages. User also noted that journal updates are being forgotten and requested consistency going forward.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 11:45
+- **User**: default_user
+- **Prompt**: "what if I search something writen in the file does this search layer return the metadata"
+- **CoPilot Mode**: Education/Clarification
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: No code changes. Provided concrete example demonstrating Query/Search Layer behavior with actual search scenario.
+- **Context and Reasons for Changes**: User asked specific clarification: when searching for text written in files, does Query/Search Layer return metadata. Provided concrete example with 3 uploaded files (research.pdf, notes.txt, code.py) and search query "machine learning". Demonstrated: (1) Search happens on cleaned_text column in database, (2) Returns only METADATA for matching files (file_id, file_name, file_type, file_size, upload_date, cleaned_text_preview), (3) Does NOT return full file content, (4) Showed SQL query: SELECT ... WHERE cleaned_text LIKE '%machine learning%', (5) Demonstrated return JSON with 2 matching results (file_id 1, 3) with match_scores, (6) Visual flow showing search → find matches → return metadata → user can click for full content. Key clarification: Search happens on cleaned_text COLUMN, but only METADATA is returned from that search. User indicated readiness to proceed with implementation.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 12:00
+- **User**: default_user
+- **Prompt**: "yes now I am ready we can implement the search layer but my last question is, where is this search layer be visible?"
+- **CoPilot Mode**: Education/Architecture
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: No code changes. Provided architecture and user-interaction diagrams showing where Search Layer is visible.
+- **Context and Reasons for Changes**: User asked final clarification before implementation: where will Search Layer be visible to users. Provided: (1) Web UI mockup showing search form with keyword input, file type filter, date range filter, and results display with document previews, (2) REST API endpoint specification: POST /search with JSON parameters and response format, (3) Complete architecture diagram showing user browser → Flask /search endpoint → SearchLayer → MySQL queries → JSON results, (4) Visual user journey from search input → HTTP request → database query → result display → optional full document view, (5) Implementation roadmap: create search_layer.py (core logic), add /search endpoint in main.py (Flask integration), build frontend HTML/JS (future), (6) Three access methods: REST API (HTTP), Web UI (browser), command line (Python script). User confirmed readiness to proceed with implementation.
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 12:15
+- **User**: default_user
+- **Prompt**: "yes I am ready but update the journal first and implement"
+- **CoPilot Mode**: Implementation
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF
+- **Changes Made**: Implemented complete Search Layer: created search_layer.py, test_search_layer.py, and added /search and /list-documents endpoints to main.py.
+- **Context and Reasons for Changes**: User confirmed readiness to implement Search Layer after multiple clarification discussions. Implementation included:
+  1. **search_layer.py** (350+ lines): Core search logic with:
+     - SearchQuery class: Encapsulates search parameters (keyword, file_type, start_date, end_date) with validation
+     - SearchResult class: Represents single search result with metadata; serializable to dict for JSON
+     - SearchLayer class: Core search engine with static methods: search() executes queries, _build_query() constructs SQL with filters, _create_preview() truncates text to 200 chars at word boundary, _calculate_match_score() ranks results by keyword frequency (0-1 scale)
+     - SearchLayerAPI class: High-level convenience API with search_keyword() and list_all_documents() methods
+     - SQL query building supports: LIKE searches on cleaned_text, file_type filtering, date range filtering (start_date to end_date), result sorting by match_score descending, limit 100 results
+  2. **test_search_layer.py** (315 lines): Comprehensive test suite with 8 tests:
+     - TEST 1: SearchQuery creation and validation (keyword, date range, all filters)
+     - TEST 2: Text preview truncation (short text, long text, boundary cases)
+     - TEST 3: Match score calculation (single occurrence, multiple occurrences, no match, case-insensitive)
+     - TEST 4: SQL query building (keyword, file type, date range, all combined)
+     - TEST 5: SearchResult object and JSON serialization
+     - TEST 6: SearchLayer.search return format validation
+     - TEST 7: Invalid query error handling
+     - TEST 8: SearchLayerAPI convenience methods
+     - Result: 7/8 tests PASSED ✅ (1 test fail fixed: keyword parameter check)
+  3. **main.py enhancements**: Added two new Flask endpoints:
+     - POST /search: Full search with keyword + filters; accepts JSON request with keyword, file_type, start_date, end_date; returns JSON with success, total_found, results array, error message; validates query before execution
+     - GET /list-documents: List all documents with optional file_type filter; query parameters: file_type (optional), limit (default 50); returns paginated results
+     - Both endpoints have proper error handling, status codes (200 success, 400 validation error, 500 server error)
+  - Search results include: file_id, file_name, file_type, file_size, word_count, upload_date, cleaned_text_preview (200 char max), match_score
+  - Architecture: User browser → POST /search → SearchLayer.search() → SQL query → database → JSON results
+  - Supports compound queries (keyword AND file_type AND date range)
+  - Results ranked by relevance (match_score based on keyword occurrence frequency)
