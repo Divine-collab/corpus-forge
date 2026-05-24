@@ -43,3 +43,6 @@
 ### 23-05-2026 22:05
 - **Prompt**: now i just need to test my flask is communicating with my database because on my end everything looks fine
 
+### 24-05-2026 03:02
+- **Prompt**: We have a working Flask backend with file upload, MySQL database, and gemini AI query. I need to build a simple HTML/CSS/JavaScript frontend with 4 features: upload documents, browse/delete documents, select active documents, and ask AI questions. Guide me step by step.
+
