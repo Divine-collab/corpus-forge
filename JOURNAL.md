@@ -899,3 +899,19 @@
 - **Hook Version**: 1.02
 - **Date**: 24-05-2026 03:02
 - **Prompt**: We have a working Flask backend with file upload, MySQL database, and gemini AI query. I need to build a simple HTML/CSS/JavaScript frontend with 4 features: upload documents, browse/delete documents, select active documents, and ask AI questions. Guide me step by step.
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 03:06
+- **User**: abdullah.salman@epita.fr
+- **Prompt**: We have a working Flask backend with file upload, MySQL database, and gemini AI query. I need to build a simple HTML/CSS/JavaScript frontend with 4 features: upload documents, browse/delete documents, select active documents, and ask AI questions. Guide me step by step.
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Added a Flask-served homepage, delete-document API support, a simple HTML/CSS/JavaScript frontend scaffold, browser-local active document selection, and a Gemini query form wired to the existing backend.
+- **Context and Reasons for Changes**: The backend already supported upload, list, search, and query, but not delete or a browser UI. The frontend needed to match the live API shapes and provide a simple single-page workflow for document management and AI questions.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 24-05-2026 03:14
+- **Prompt**: Gemini API error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID" domain: "googleapis.com" metadata { key: "service" value: "generativelanguage.googleapis.com" } , locale: "en-US" message: "API key not valid. Please pass a valid API key." ]

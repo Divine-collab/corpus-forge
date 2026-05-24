@@ -46,3 +46,6 @@
 ### 24-05-2026 03:02
 - **Prompt**: We have a working Flask backend with file upload, MySQL database, and gemini AI query. I need to build a simple HTML/CSS/JavaScript frontend with 4 features: upload documents, browse/delete documents, select active documents, and ask AI questions. Guide me step by step.
 
+### 24-05-2026 03:14
+- **Prompt**: Gemini API error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID" domain: "googleapis.com" metadata { key: "service" value: "generativelanguage.googleapis.com" } , locale: "en-US" message: "API key not valid. Please pass a valid API key." ]
+
