@@ -745,3 +745,152 @@
   - Architecture: User browser → POST /search → SearchLayer.search() → SQL query → database → JSON results
   - Supports compound queries (keyword AND file_type AND date range)
   - Results ranked by relevance (match_score based on keyword occurrence frequency)
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 12:30
+- **User**: default_user
+- **Prompt**: "our next is ai query layer but I want us to take some time on this because I want to get this very well."
+- **CoPilot Mode**: Planning/Education
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON (will return to Socratic method for deep understanding)
+- **Changes Made**: No code changes. Acknowledged user's request for in-depth understanding of AI Query Layer before implementation.
+- **Context and Reasons for Changes**: User explicitly requested to take time and understand AI Query Layer deeply before implementation, indicating desire for mastery rather than quick completion. This is a strategic pivot to Socratic teaching mode to ensure comprehensive understanding. AI Query Layer is the most complex and important component—will build understanding through guided questions, architecture diagrams, use cases, and comparisons with existing Search Layer before any code is written. This ensures user can maintain, extend, and troubleshoot the AI component independently.
+
+### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 23-05-2026 12:45
+- **User**: default_user
+- **Prompt**: "for the search layer it needs the exact same words"
+- **CoPilot Mode**: Education/Socratic
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Changes Made**: No code changes. Guided deep-learning discussion on Search Layer limitations vs AI Query Layer capabilities.
+- **Context and Reasons for Changes**: User identified the core Search Layer limitation: it requires exact string matching using LIKE '%keyword%' queries. This insight is critical for understanding why AI Query Layer is needed. Provided visual comparison of Search Layer (exact match only) vs AI Query Layer (semantic understanding). Showed three query types: (1) Exact Match - both layers work, (2) Synonym-based - Search fails, AI succeeds, (3) Semantic/Reasoning - Search fails, AI succeeds. Example: User asks "documents about machine learning and privacy" - Search Layer only finds exact phrase matches and misses synonyms like "AI safety," "data protection," "confidentiality." Posed follow-up Socratic question: What should AI Query Layer do differently to understand semantic meaning and synonyms? This establishes foundation for understanding why LLMs are needed and how they solve the semantic gap problem.
+
+### **New Interaction - AI Query Layer Approach Decision**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 14:30
+- **User**: default_user
+- **Prompt**: "I prefer speed, accuracy and complexity" → "I'd accept slightly slower queries if accuracy and simplicity stay high"
+- **CoPilot Mode**: Architecture/Planning
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Decision Made**: **LLM Approach Selected** for AI Query Layer
+- **Trade-off Acceptance**: User explicitly chose accuracy + simplicity over speed. Willing to accept 1-2 second query latency for semantic understanding and straightforward implementation.
+- **Rationale**: LLM satisfies primary use case: finding contextually related documents even when synonyms/rephrasing used. Simple to implement (call OpenAI or local LLM). Reasonable accuracy for capstone project scope.
+- **Next Phase**: Architectural design of LLM integration including: (1) API choice (OpenAI vs local model), (2) Prompt engineering for query understanding, (3) Response parsing and result ranking, (4) Caching strategy for cost/performance, (5) Error handling for API failures.
+
+### **New Interaction - API Key Explanation & Architecture Foundations**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 14:35
+- **User**: default_user
+- **Prompt**: "what is API key" → "update the journal"
+- **CoPilot Mode**: Education/Architecture
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Changes Made**: No code changes. Explained API key concept: unique authentication token that proves authorization to use a service (e.g., OpenAI) and enables billing/quota tracking. Clarified difference between OpenAI API (requires API key, paid per query, better accuracy) vs Local Model like Ollama/LLaMA 2 (no API key, free, runs on machine, slower).
+- **Context and Reasons for Changes**: User asked fundamental question about API keys, indicating readiness to understand the LLM architecture decision. Explained real-world analogy (password to authenticate + billing) and presented two concrete scenarios: (1) OpenAI GPT-3.5-turbo with API key (~$0.002/query), (2) Local LLaMA 2 without API key (free). This is critical architectural choice that will determine implementation approach, cost model, and complexity. User has not yet decided between OpenAI vs Local, so architecture design is pending this decision.
+- **Pending Decisions**: (1) OpenAI API vs Local Model, (2) LLM task scope (break into concepts vs rephrase vs both), (3) Caching strategy for semantic expansions.
+
+### **New Interaction - LLM Provider Decision: Google Gemini API Selected**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 14:40
+- **User**: default_user
+- **Prompt**: "i would like to use Google Gemini API"
+- **CoPilot Mode**: Architecture/Implementation Planning
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Decision Made**: **Google Gemini API Selected** for LLM layer (vs OpenAI or Local Model)
+- **Architectural Impact**: 
+  - Authentication: Google API key (free tier available, higher free limits than OpenAI)
+  - Cost: ~$0.0005 per query (cheaper than GPT-3.5-turbo)
+  - Accuracy: Excellent semantic understanding (comparable to GPT-4)
+  - Speed: ~1-2 seconds per query (acceptable for chosen trade-off)
+  - Integration: Google Generative AI Python SDK (easy installation)
+- **Trade-off Analysis**: Gemini aligns perfectly with user's preference: accuracy + simplicity + reasonable cost. Free tier covers capstone testing/demo without burning through credits.
+- **Next Architectural Questions**: (1) Prompt design - what should Gemini output? (semantic concepts vs rephrased query vs both), (2) Response parsing - how to extract structured search terms from Gemini's text response, (3) Caching - should we cache Gemini expansions to reduce API calls?
+
+### **New Interaction - MVP Strategy: Basic Q&A First**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 14:45
+- **User**: default_user
+- **Prompt**: "Focus on getting basic AI query working first (question + document text → answer) before adding optimizations like concept expansion or query rewriting"
+- **CoPilot Mode**: Architecture/MVP Planning
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Strategic Decision**: **MVP-First Approach** - Skip semantic expansion/query rewriting complexity. Focus on core Q&A capability.
+- **Architecture Simplified**: 
+  - Phase 1 (NOW): Basic Q&A pipeline: user_query + document_text → Gemini → answer
+  - Phase 2 (LATER): Add concept expansion if accuracy insufficient
+  - Phase 3 (LATER): Add query rewriting for edge cases
+- **Rationale**: User understands agile principle: build working foundation, validate, then optimize. This avoids over-engineering and lets user see results quickly. Simplifies first implementation significantly.
+- **Implementation Plan**: 
+  1. Create query_layer.py with AIQueryLayer class
+  2. Method: query(user_question, document_text) → calls Gemini with prompt → returns answer string
+  3. Add /query endpoint to main.py: POST {query, document_id} → fetches document text → calls AIQueryLayer → returns {answer, document_id}
+  4. Test with sample queries before adding expansion logic
+- **Prompt Design (to be finalized)**: "Given the document below, answer this question concisely: [QUESTION]. Document: [TEXT]"
+
+### **New Interaction - Implementation Decisions for AI Query Layer**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 14:50
+- **User**: default_user
+- **Prompt**: Answered three implementation questions: (1) API key location, (2) Failure handling, (3) Document truncation
+- **CoPilot Mode**: Implementation Planning
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Decisions Made**:
+  1. **API Key Storage**: Environment variable (secure, standard practice, no hardcoding)
+  2. **Error Handling**: Return error message to user (transparent, helps with debugging)
+  3. **Document Truncation**: Yes, truncate long documents (prevents token overflow, ~20,000 chars = ~5,000 tokens safe limit)
+- **Code Plan**:
+  - AIQueryLayer.__init__(api_key_env_var) - read from os.environ
+  - AIQueryLayer.query(user_question, document_text) - truncate if needed, call Gemini, return answer or error
+  - Error response format: {success: false, error: "error message"}
+  - Success response format: {success: true, answer: "answer text"}
+- **Next Step**: Implement query_layer.py and add /query endpoint to main.py
+
+### **New Interaction - AI Query Layer Implementation Complete (MVP)**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 15:00
+- **User**: default_user
+- **Prompt**: (Implicit: implement query_layer.py and /query endpoint)
+- **CoPilot Mode**: Implementation
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: OFF (Full implementation requested)
+- **Changes Made**:
+  1. Created `query_layer.py` (140 lines):
+     - AIQueryLayer class with __init__() reading from GOOGLE_GEMINI_API_KEY env var
+     - query(user_question, document_text) method returning {success, answer} or {success, error}
+     - Document truncation at 20,000 chars to prevent token overflow
+     - Error handling for all failure modes (empty inputs, API errors, timeouts)
+     - Comprehensive docstrings and comments
+  
+  2. Created `test_query_layer.py` (130 lines):
+     - 10 unit tests covering: initialization, env var handling, API key validation, document truncation, empty input validation, API error handling, response format
+     - Tests: 10/10 PASSING
+  
+  3. Updated `main.py`:
+     - Added import: from query_layer import AIQueryLayer, get_document_text
+     - Added POST /query endpoint with full parameter validation
+     - Returns {success, answer, document_id, query} on success
+     - Returns {success, error, document_id, query} on failure
+  
+  4. Updated `db.py`:
+     - Added get_document_text(document_id) function to retrieve cleaned_text from database
+     - Error handling for missing documents and database errors
+- **Architecture Summary**: 
+  User query + document_id → /query endpoint → fetches doc from DB → AIQueryLayer.query() → Gemini API → answer
+- **Next Phase**: User can now test /query endpoint with sample documents. Future: Add concept expansion/query rewriting if accuracy insufficient.
+
+### **New Interaction - MVP Definition & Completion Analysis**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 15:10
+- **User**: default_user
+- **Prompt**: "what do I miss to finish mvp stage and what does mvp mean"
+- **CoPilot Mode**: Education/Planning
+- **CoPilot Model**: Claude Haiku 4.5
+- **Socratic Mode**: ON
+- **Changes Made**: No code changes. Provided comprehensive MVP definition and gap analysis.
+- **Context and Reasons for Changes**: User asking foundational question about MVP definition and current project completion status. Critical for understanding project trajectory and scope. This indicates user is thinking strategically about project phases and wants clarity before deciding next steps.

@@ -61,3 +61,43 @@ def insert_uploaded_file(filename, file_type, file_size, raw_text, cleaned_text,
             connection.close()
         except Exception:
             pass
+
+
+# ─────────────────────────────────────────
+# 3. RETRIEVAL
+# ─────────────────────────────────────────
+def get_document_text(document_id):
+    """
+    Retrieve cleaned_text for a document by ID.
+    Returns the cleaned_text string on success, None if not found or error.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+    
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = "SELECT cleaned_text FROM uploaded_files WHERE id = %s"
+        cursor.execute(query, (document_id,))
+        
+        result = cursor.fetchone()
+        if result:
+            return result[0]  # cleaned_text is the first column
+        else:
+            return None  # Document not found
+    
+    except Error as e:
+        print(f"[DB] Retrieval error: {e}")
+        return None
+    
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass

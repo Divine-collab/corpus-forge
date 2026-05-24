@@ -13,7 +13,8 @@ from werkzeug.utils import secure_filename
 
 from reader_factory import ReaderFactory
 from search_layer import SearchQuery, SearchLayer, SearchLayerAPI
-from db import insert_uploaded_file
+from query_layer import AIQueryLayer
+from db import insert_uploaded_file, get_document_text
 
 
 app = Flask(__name__)
@@ -200,6 +201,77 @@ def list_documents():
 	
 	except Exception as e:
 		return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
+
+
+@app.route("/query", methods=["POST"])
+def query():
+	"""
+	AI Query endpoint: Ask a question about a specific document.
+	
+	Request JSON parameters:
+	{
+		"query": "string" (required, the question to ask),
+		"document_id": int (required, the document to query)
+	}
+	
+	Returns:
+	{
+		"success": bool,
+		"answer": string (if success),
+		"document_id": int,
+		"query": string,
+		"error": string (if error)
+	}
+	"""
+	try:
+		# Get JSON request data
+		data = request.get_json()
+		if not data:
+			return jsonify({'success': False, 'error': 'Request must be JSON'}), 400
+		
+		# Extract parameters
+		user_query = data.get('query', '').strip()
+		document_id = data.get('document_id')
+		
+		# Validate inputs
+		if not user_query:
+			return jsonify({'success': False, 'error': 'Query cannot be empty'}), 400
+		
+		if document_id is None:
+			return jsonify({'success': False, 'error': 'document_id is required'}), 400
+		
+		# Fetch document text from database
+		document_text = get_document_text(document_id)
+		if document_text is None:
+			return jsonify({
+				'success': False,
+				'error': f'Document with ID {document_id} not found'
+			}), 404
+		
+		# Initialize AI Query Layer
+		ai_layer = AIQueryLayer()
+		
+		# Ask question about document
+		result = ai_layer.query(user_query, document_text)
+		
+		# Return result with document context
+		if result['success']:
+			return jsonify({
+				'success': True,
+				'answer': result['answer'],
+				'document_id': document_id,
+				'query': user_query
+			}), 200
+		else:
+			return jsonify({
+				'success': False,
+				'error': result['error'],
+				'document_id': document_id,
+				'query': user_query
+			}), 400
+	
+	except Exception as e:
+		return jsonify({'success': False, 'error': f'Query error: {str(e)}'}), 500
 
 
 # TODO: add error handlers for common upload problems.
