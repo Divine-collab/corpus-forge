@@ -912,6 +912,17 @@
 - **Context and Reasons for Changes**: The backend already supported upload, list, search, and query, but not delete or a browser UI. The frontend needed to match the live API shapes and provide a simple single-page workflow for document management and AI questions.
 
 ### **New Interaction**
+- **Agent Version**: 2.3
+- **Date**: 24-05-2026 03:14
+- **User**: abdullah.salman@epita.fr
+- **Prompt**: Gemini API error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID" domain: "googleapis.com" metadata { key: "service" value: "generativelanguage.googleapis.com" } , locale: "en-US" message: "API key not valid. Please pass a valid API key." ]
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Added explicit `.env` loading for the Gemini key, installed `python-dotenv`, and improved the startup validation so placeholder or missing keys fail fast with a clearer error message.
+- **Context and Reasons for Changes**: The app was falling through to Gemini with an invalid or placeholder key. Loading `.env` explicitly makes local configuration reliable, and clearer validation helps the user fix the real root cause faster.
+
+### **New Interaction**
 - **Hook Version**: 1.02
 - **Date**: 24-05-2026 03:14
 - **Prompt**: Gemini API error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID" domain: "googleapis.com" metadata { key: "service" value: "generativelanguage.googleapis.com" } , locale: "en-US" message: "API key not valid. Please pass a valid API key." ]

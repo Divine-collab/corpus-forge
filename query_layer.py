@@ -13,7 +13,20 @@ Configuration:
 """
 
 import os
-import google.generativeai as genai
+
+try:
+    import google.generativeai as genai
+except ImportError:  # pragma: no cover - optional runtime dependency
+    genai = None
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional runtime dependency
+    load_dotenv = None
+
+
+if load_dotenv is not None:
+    load_dotenv()
 
 
 class AIQueryLayer:
@@ -33,17 +46,23 @@ class AIQueryLayer:
             api_key (str, optional): Google Gemini API key. 
                                     If None, reads from GOOGLE_GEMINI_API_KEY env var.
         """
+        if genai is None:
+            raise ImportError(
+                "google-generativeai is not installed. "
+                "Install it or set up the Gemini runtime dependency."
+            )
+
         if api_key is None:
             api_key = os.environ.get('GOOGLE_GEMINI_API_KEY')
         
-        if not api_key:
+        if not api_key or api_key.strip() in {"", "your_google_gemini_api_key_here"}:
             raise ValueError(
                 "Google Gemini API key not found. "
-                "Set GOOGLE_GEMINI_API_KEY environment variable."
+                "Set GOOGLE_GEMINI_API_KEY in .env or your shell with a real Gemini API key."
             )
         
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.model = genai.GenerativeModel('gemini-3.5-flash')
     
     def _truncate_document(self, text):
         """

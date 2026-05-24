@@ -1,11 +1,21 @@
-import mysql.connector
-from mysql.connector import Error
+try:
+    import mysql.connector
+    from mysql.connector import Error
+except ImportError:  # pragma: no cover - optional runtime dependency
+    mysql = None
+
+    class Error(Exception):
+        pass
 
 # ─────────────────────────────────────────
 # 1. CONNECTION
 # ─────────────────────────────────────────
 def get_db_connection():
     """Returns a MySQL connection to corpus_forge."""
+    if mysql is None:
+        print("[DB] mysql-connector-python is not installed")
+        return None
+
     try:
         connection = mysql.connector.connect(
             host="localhost",
@@ -91,6 +101,44 @@ def get_document_text(document_id):
         print(f"[DB] Retrieval error: {e}")
         return None
     
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+# ─────────────────────────────────────────
+# 4. DELETION
+# ─────────────────────────────────────────
+def delete_uploaded_file(document_id):
+    """
+    Delete a file record from uploaded_files by ID.
+    Returns True if a row was deleted, False otherwise.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return False
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = "DELETE FROM uploaded_files WHERE id = %s"
+        cursor.execute(query, (document_id,))
+        connection.commit()
+        return cursor.rowcount > 0
+    except Error as e:
+        print(f"[DB] Delete error: {e}")
+        try:
+            connection.rollback()
+        except Exception:
+            pass
+        return False
     finally:
         if cursor is not None:
             try:

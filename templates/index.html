@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Corpus Forge</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+	<div class="app-shell">
+		<header class="hero">
+			<div>
+				<p class="eyebrow">Corpus Forge</p>
+				<h1>Upload, organize, and ask questions about your documents.</h1>
+				<p class="hero-copy">A simple Flask-powered workspace for managing documents and chatting with Gemini on the selected files.</p>
+			</div>
+			<div class="hero-card">
+				<span class="stat-label">Active documents</span>
+				<strong id="activeCount">0</strong>
+				<span class="muted" id="selectionHint">Select documents from the list below.</span>
+			</div>
+		</header>
+
+		<main class="grid">
+			<section class="panel">
+				<div class="panel-header">
+					<h2>Upload documents</h2>
+					<p>Supports your current Flask readers: text, markdown, PDF, and source files.</p>
+				</div>
+				<form id="uploadForm" class="stack" enctype="multipart/form-data">
+					<input id="fileInput" name="file" type="file" accept=".txt,.md,.pdf,.py,.js" required>
+					<button type="submit" class="primary">Upload file</button>
+				</form>
+				<div id="uploadStatus" class="status"></div>
+			</section>
+
+			<section class="panel panel-wide">
+				<div class="panel-header row">
+					<div>
+						<h2>Browse documents</h2>
+						<p>Pick active documents, delete items, or refresh the list after uploads.</p>
+					</div>
+					<button id="refreshDocs" type="button" class="secondary">Refresh</button>
+				</div>
+				<div id="documentsList" class="documents-list"></div>
+			</section>
+
+			<section class="panel">
+				<div class="panel-header">
+					<h2>Active documents</h2>
+					<p>These selections are saved in your browser so you can keep working.</p>
+				</div>
+				<div id="activeDocuments" class="active-list"></div>
+			</section>
+
+			<section class="panel">
+				<div class="panel-header">
+					<h2>Ask AI questions</h2>
+					<p>Choose one active document, then ask a question about its contents.</p>
+				</div>
+				<form id="queryForm" class="stack">
+					<select id="queryDocument" required>
+						<option value="">Select an active document</option>
+					</select>
+					<textarea id="queryInput" rows="5" placeholder="Ask about themes, topics, keywords, or summary..." required></textarea>
+					<button type="submit" class="primary">Ask Gemini</button>
+				</form>
+				<div id="queryStatus" class="status"></div>
+				<div id="answerBox" class="answer-box hidden"></div>
+			</section>
+		</main>
+	</div>
+
+	<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
