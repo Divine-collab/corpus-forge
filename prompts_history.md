@@ -58,3 +58,6 @@
 ### 26-05-2026 00:34
 - **Prompt**: What MySQL table structure would you recommend to log  token usage per API call? Give me: 1. The CREATE TABLE SQL statement 2. A new function in db.py called insert_api_usage_log()     that saves: document_id, query_text, input_tokens,     output_tokens, total_tokens, created_at
 
+### 26-05-2026 01:06
+- **Prompt**: How should I connect the /query route in main.py to log  token usage after every Gemini call? Show me exactly  where and how to call insert_api_usage_log() inside  the /query route using the token counts now returned  by AIQueryLayer.query()
+

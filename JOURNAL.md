@@ -963,3 +963,25 @@ response = self.model.generate_content(prompt)"
 - **Hook Version**: 1.02
 - **Date**: 26-05-2026 00:34
 - **Prompt**: What MySQL table structure would you recommend to log  token usage per API call? Give me: 1. The CREATE TABLE SQL statement 2. A new function in db.py called insert_api_usage_log()     that saves: document_id, query_text, input_tokens,     output_tokens, total_tokens, created_at
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 26-05-2026 00:34
+- **User**: muhammad-saim.chaudhary@epita.fr
+- **Prompt**: "What MySQL table structure would you recommend to log 
+token usage per API call? Give me:
+1. The CREATE TABLE SQL statement
+2. A new function in db.py called insert_api_usage_log() 
+  that saves: document_id, query_text, input_tokens, 
+  output_tokens, total_tokens, created_at"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Added `insert_api_usage_log()` to `db.py` using the same MySQL connection and cleanup pattern as the existing helpers.
+- **Context and Reasons for Changes**: User wants to persist Gemini token usage per API call alongside document/query context. Implemented a dedicated insert helper so the app can log token consumption without changing the existing upload table flow.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 01:06
+- **Prompt**: How should I connect the /query route in main.py to log  token usage after every Gemini call? Show me exactly  where and how to call insert_api_usage_log() inside  the /query route using the token counts now returned  by AIQueryLayer.query()
