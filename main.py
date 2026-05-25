@@ -8,7 +8,7 @@ POST /upload endpoint step by step.
 import os
 import tempfile
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 from werkzeug.utils import secure_filename
 
 from reader_factory import ReaderFactory
@@ -21,6 +21,12 @@ app = Flask(__name__)
 
 
 UPLOAD_FOLDER = tempfile.gettempdir()
+
+
+@app.route("/")
+def index():
+	"""Serve the main frontend page."""
+	return render_template("index.html")
 
 
 
@@ -201,6 +207,40 @@ def list_documents():
 	
 	except Exception as e:
 		return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
+
+
+@app.route("/documents/<int:document_id>", methods=["DELETE"])
+def delete_document(document_id):
+	"""
+	Delete a document from the database by ID.
+	
+	Returns:
+	{
+		"success": bool,
+		"document_id": int,
+		"message": string,
+		"error": string (if error)
+	}
+	"""
+	try:
+		from db import delete_uploaded_file
+
+		deleted = delete_uploaded_file(document_id)
+		if deleted:
+			return jsonify({
+				'success': True,
+				'document_id': document_id,
+				'message': 'Document deleted successfully'
+			}), 200
+
+		return jsonify({
+			'success': False,
+			'document_id': document_id,
+			'error': f'Document with ID {document_id} not found'
+		}), 404
+
+	except Exception as e:
+		return jsonify({'success': False, 'error': f'Delete error: {str(e)}'}), 500
 
 
 @app.route("/query", methods=["POST"])
