@@ -219,6 +219,35 @@
 ### **New Interaction**
 
 - **Agent Version**: 2.3
+- **Date**: 26-05-2026 00:31
+- **User**: muhammadsaimchaudhary@Muhammads-MacBook-Pro
+- **Prompt**: "What does the Gemini API response object look like? 
+  Does it include token usage information?"
+- **CoPilot Mode**: Ask
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: No code changes. Checked the Gemini generateContent response schema and the repo's current Gemini usage.
+- **Context and Reasons for Changes**: User asked about the structure of Gemini API responses and whether token usage is included. Verified that GenerateContentResponse exposes candidates, promptFeedback, usageMetadata, modelVersion, and responseId, while the current code only reads response.text.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 26-05-2026 00:31
+- **User**: muhammad-saim.chaudhary@epita.fr
+- **Prompt**: "How can I extract input_token_count and output_token_count 
+from a Gemini API response in Python? Show me the exact 
+code I need to add in query_layer.py after this line:
+
+response = self.model.generate_content(prompt)"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Updated `query_layer.py` to read Gemini `usage_metadata` after `generate_content`, map prompt tokens to `input_token_count`, map candidate tokens to `output_token_count`, and include both values in the success response.
+- **Context and Reasons for Changes**: User wanted the exact Python code to extract token usage from the Gemini response. Added defensive `getattr` handling so the code still works when `usage_metadata` is absent, and validated the file with `python3 -m py_compile` after the edit.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
 - **Date**: 19-05-2026 01:45
 - **User**: default_user
 - **Prompt**: "I would like to implement code reader next but first explain me methods it is going to have which differentiate it from textreader"
@@ -919,3 +948,61 @@
   3. **Option C (Query Smarts)**: Concept expansion, multi-search, result re-ranking. 3-4 hours. Better AI accuracy.
 - **Recommendation**: Option A (Frontend) for capstone because: demonstrates usability, looks impressive visually, proves architecture works, time-effective.
 - **Pending User Decision**: Which path to pursue (A/B/C) to finish MVP stage.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 00:30
+- **Prompt**: "What does the Gemini API response object look like?      Does it include token usage information?"
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 00:32
+- **Prompt**: How can I extract input_token_count and output_token_count  from a Gemini API response in Python? Show me the exact  code I need to add in query_layer.py after this line:  response = self.model.generate_content(prompt)
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 00:34
+- **Prompt**: What MySQL table structure would you recommend to log  token usage per API call? Give me: 1. The CREATE TABLE SQL statement 2. A new function in db.py called insert_api_usage_log()     that saves: document_id, query_text, input_tokens,     output_tokens, total_tokens, created_at
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 26-05-2026 00:34
+- **User**: muhammad-saim.chaudhary@epita.fr
+- **Prompt**: "What MySQL table structure would you recommend to log 
+token usage per API call? Give me:
+1. The CREATE TABLE SQL statement
+2. A new function in db.py called insert_api_usage_log() 
+  that saves: document_id, query_text, input_tokens, 
+  output_tokens, total_tokens, created_at"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Added `insert_api_usage_log()` to `db.py` using the same MySQL connection and cleanup pattern as the existing helpers.
+- **Context and Reasons for Changes**: User wants to persist Gemini token usage per API call alongside document/query context. Implemented a dedicated insert helper so the app can log token consumption without changing the existing upload table flow.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 01:06
+- **Prompt**: How should I connect the /query route in main.py to log  token usage after every Gemini call? Show me exactly  where and how to call insert_api_usage_log() inside  the /query route using the token counts now returned  by AIQueryLayer.query()
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 26-05-2026 01:06
+- **User**: muhammad-saim.chaudhary@epita.fr
+- **Prompt**: "How should I connect the /query route in main.py to log 
+token usage after every Gemini call? Show me exactly 
+where and how to call insert_api_usage_log() inside 
+the /query route using the token counts now returned 
+by AIQueryLayer.query()"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Updated `main.py` to import `insert_api_usage_log`, read `input_token_count` and `output_token_count` from `AIQueryLayer.query()` results, and log token usage immediately after the Gemini call.
+- **Context and Reasons for Changes**: User wanted the `/query` route wired to persist token usage per Gemini request. Added a non-blocking DB write so the API still returns the AI answer even if the usage log insert fails.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 01:08
+- **Prompt**: Add a GET /stats endpoint in main.py that returns: - total number of API requests made - total input tokens used - total output tokens used - total tokens overall  Read this data from the api_usage_logs table in MySQL. Also add a function get_api_stats() in db.py to fetch  these totals.

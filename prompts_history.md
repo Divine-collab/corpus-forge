@@ -49,3 +49,18 @@
 ### 24-05-2026 03:14
 - **Prompt**: Gemini API error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID" domain: "googleapis.com" metadata { key: "service" value: "generativelanguage.googleapis.com" } , locale: "en-US" message: "API key not valid. Please pass a valid API key." ]
 
+### 26-05-2026 00:30
+- **Prompt**: "What does the Gemini API response object look like?      Does it include token usage information?"
+
+### 26-05-2026 00:32
+- **Prompt**: How can I extract input_token_count and output_token_count  from a Gemini API response in Python? Show me the exact  code I need to add in query_layer.py after this line:  response = self.model.generate_content(prompt)
+
+### 26-05-2026 00:34
+- **Prompt**: What MySQL table structure would you recommend to log  token usage per API call? Give me: 1. The CREATE TABLE SQL statement 2. A new function in db.py called insert_api_usage_log()     that saves: document_id, query_text, input_tokens,     output_tokens, total_tokens, created_at
+
+### 26-05-2026 01:06
+- **Prompt**: How should I connect the /query route in main.py to log  token usage after every Gemini call? Show me exactly  where and how to call insert_api_usage_log() inside  the /query route using the token counts now returned  by AIQueryLayer.query()
+
+### 26-05-2026 01:08
+- **Prompt**: Add a GET /stats endpoint in main.py that returns: - total number of API requests made - total input tokens used - total output tokens used - total tokens overall  Read this data from the api_usage_logs table in MySQL. Also add a function get_api_stats() in db.py to fetch  these totals.
+

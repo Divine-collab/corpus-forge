@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 from reader_factory import ReaderFactory
 from search_layer import SearchQuery, SearchLayer, SearchLayerAPI
 from query_layer import AIQueryLayer
-from db import insert_uploaded_file, get_document_text
+from db import insert_uploaded_file, get_document_text, insert_api_usage_log, get_api_stats
 
 
 app = Flask(__name__)
@@ -293,6 +293,21 @@ def query():
 		
 		# Ask question about document
 		result = ai_layer.query(user_query, document_text)
+		input_token_count = result.get('input_token_count')
+		output_token_count = result.get('output_token_count')
+
+		# Log token usage for every successful Gemini call.
+		if result.get('success'):
+			total_token_count = (input_token_count or 0) + (output_token_count or 0)
+			usage_log_id = insert_api_usage_log(
+				document_id=document_id,
+				query_text=user_query,
+				input_tokens=input_token_count or 0,
+				output_tokens=output_token_count or 0,
+				total_tokens=total_token_count,
+			)
+			if usage_log_id is None:
+				print(f"[DB] Failed to log token usage for document_id={document_id}")
 		
 		# Return result with document context
 		if result['success']:
@@ -300,7 +315,10 @@ def query():
 				'success': True,
 				'answer': result['answer'],
 				'document_id': document_id,
-				'query': user_query
+				'query': user_query,
+				'input_token_count': input_token_count,
+				'output_token_count': output_token_count,
+				'total_token_count': (input_token_count or 0) + (output_token_count or 0)
 			}), 200
 		else:
 			return jsonify({
@@ -332,6 +350,38 @@ def test_db():
         return jsonify({"status": "✅ Connected to corpus_forge successfully"}), 200
     else:
         return jsonify({"status": "❌ Connection failed"}), 500
+
+
+@app.route("/stats", methods=["GET"])
+def stats():
+	"""
+	Return aggregate token usage statistics from api_usage_logs.
+
+	Returns:
+	{
+		"success": bool,
+		"total_api_requests": int,
+		"total_input_tokens": int,
+		"total_output_tokens": int,
+		"total_tokens_overall": int,
+		"error": string (if error)
+	}
+	"""
+	try:
+		stats_data = get_api_stats()
+		if stats_data is None:
+			return jsonify({
+				'success': False,
+				'error': 'Failed to retrieve API usage statistics'
+			}), 500
+
+		return jsonify({
+			'success': True,
+			**stats_data
+		}), 200
+
+	except Exception as e:
+		return jsonify({'success': False, 'error': f'Stats error: {str(e)}'}), 500
 	
 
 if __name__ == "__main__":

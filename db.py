@@ -73,6 +73,108 @@ def insert_uploaded_file(filename, file_type, file_size, raw_text, cleaned_text,
             pass
 
 
+def insert_api_usage_log(document_id, query_text, input_tokens, output_tokens, total_tokens, created_at=None):
+    """
+    Inserts a Gemini API usage log row into api_usage_logs.
+    Returns the new row's ID on success, None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        if created_at is None:
+            query = """
+                INSERT INTO api_usage_logs
+                    (document_id, query_text, input_tokens, output_tokens, total_tokens)
+                VALUES
+                    (%s, %s, %s, %s, %s)
+            """
+            values = (document_id, query_text, input_tokens, output_tokens, total_tokens)
+        else:
+            query = """
+                INSERT INTO api_usage_logs
+                    (document_id, query_text, input_tokens, output_tokens, total_tokens, created_at)
+                VALUES
+                    (%s, %s, %s, %s, %s, %s)
+            """
+            values = (document_id, query_text, input_tokens, output_tokens, total_tokens, created_at)
+
+        cursor.execute(query, values)
+        connection.commit()
+        return cursor.lastrowid
+    except Error as e:
+        print(f"[DB] API usage insert error: {e}")
+        try:
+            connection.rollback()
+        except Exception:
+            pass
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def get_api_stats():
+    """
+    Fetch aggregate API usage statistics from api_usage_logs.
+    Returns a dictionary with totals on success, or None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = """
+            SELECT
+                COUNT(*) AS total_api_requests,
+                COALESCE(SUM(input_tokens), 0) AS total_input_tokens,
+                COALESCE(SUM(output_tokens), 0) AS total_output_tokens,
+                COALESCE(SUM(total_tokens), 0) AS total_tokens_overall
+            FROM api_usage_logs
+        """
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if not result:
+            return {
+                'total_api_requests': 0,
+                'total_input_tokens': 0,
+                'total_output_tokens': 0,
+                'total_tokens_overall': 0,
+            }
+
+        return {
+            'total_api_requests': int(result[0] or 0),
+            'total_input_tokens': int(result[1] or 0),
+            'total_output_tokens': int(result[2] or 0),
+            'total_tokens_overall': int(result[3] or 0),
+        }
+    except Error as e:
+        print(f"[DB] Stats retrieval error: {e}")
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
 # ─────────────────────────────────────────
 # 3. RETRIEVAL
 # ─────────────────────────────────────────
