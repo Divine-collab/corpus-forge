@@ -52,3 +52,6 @@
 ### 26-05-2026 00:30
 - **Prompt**: "What does the Gemini API response object look like?      Does it include token usage information?"
 
+### 26-05-2026 00:32
+- **Prompt**: How can I extract input_token_count and output_token_count  from a Gemini API response in Python? Show me the exact  code I need to add in query_layer.py after this line:  response = self.model.generate_content(prompt)
+

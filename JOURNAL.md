@@ -219,6 +219,19 @@
 ### **New Interaction**
 
 - **Agent Version**: 2.3
+- **Date**: 26-05-2026 00:31
+- **User**: muhammadsaimchaudhary@Muhammads-MacBook-Pro
+- **Prompt**: "What does the Gemini API response object look like? 
+  Does it include token usage information?"
+- **CoPilot Mode**: Ask
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: No code changes. Checked the Gemini generateContent response schema and the repo's current Gemini usage.
+- **Context and Reasons for Changes**: User asked about the structure of Gemini API responses and whether token usage is included. Verified that GenerateContentResponse exposes candidates, promptFeedback, usageMetadata, modelVersion, and responseId, while the current code only reads response.text.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
 - **Date**: 19-05-2026 01:45
 - **User**: default_user
 - **Prompt**: "I would like to implement code reader next but first explain me methods it is going to have which differentiate it from textreader"
@@ -924,3 +937,8 @@
 - **Hook Version**: 1.02
 - **Date**: 26-05-2026 00:30
 - **Prompt**: "What does the Gemini API response object look like?      Does it include token usage information?"
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 00:32
+- **Prompt**: How can I extract input_token_count and output_token_count  from a Gemini API response in Python? Show me the exact  code I need to add in query_layer.py after this line:  response = self.model.generate_content(prompt)
