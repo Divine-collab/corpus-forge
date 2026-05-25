@@ -985,3 +985,24 @@ token usage per API call? Give me:
 - **Hook Version**: 1.02
 - **Date**: 26-05-2026 01:06
 - **Prompt**: How should I connect the /query route in main.py to log  token usage after every Gemini call? Show me exactly  where and how to call insert_api_usage_log() inside  the /query route using the token counts now returned  by AIQueryLayer.query()
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
+- **Date**: 26-05-2026 01:06
+- **User**: muhammad-saim.chaudhary@epita.fr
+- **Prompt**: "How should I connect the /query route in main.py to log 
+token usage after every Gemini call? Show me exactly 
+where and how to call insert_api_usage_log() inside 
+the /query route using the token counts now returned 
+by AIQueryLayer.query()"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Updated `main.py` to import `insert_api_usage_log`, read `input_token_count` and `output_token_count` from `AIQueryLayer.query()` results, and log token usage immediately after the Gemini call.
+- **Context and Reasons for Changes**: User wanted the `/query` route wired to persist token usage per Gemini request. Added a non-blocking DB write so the API still returns the AI answer even if the usage log insert fails.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 01:08
+- **Prompt**: Add a GET /stats endpoint in main.py that returns: - total number of API requests made - total input tokens used - total output tokens used - total tokens overall  Read this data from the api_usage_logs table in MySQL. Also add a function get_api_stats() in db.py to fetch  these totals.

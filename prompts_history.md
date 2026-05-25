@@ -61,3 +61,6 @@
 ### 26-05-2026 01:06
 - **Prompt**: How should I connect the /query route in main.py to log  token usage after every Gemini call? Show me exactly  where and how to call insert_api_usage_log() inside  the /query route using the token counts now returned  by AIQueryLayer.query()
 
+### 26-05-2026 01:08
+- **Prompt**: Add a GET /stats endpoint in main.py that returns: - total number of API requests made - total input tokens used - total output tokens used - total tokens overall  Read this data from the api_usage_logs table in MySQL. Also add a function get_api_stats() in db.py to fetch  these totals.
+
