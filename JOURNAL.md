@@ -232,6 +232,22 @@
 ### **New Interaction**
 
 - **Agent Version**: 2.3
+- **Date**: 26-05-2026 00:31
+- **User**: muhammad-saim.chaudhary@epita.fr
+- **Prompt**: "How can I extract input_token_count and output_token_count 
+from a Gemini API response in Python? Show me the exact 
+code I need to add in query_layer.py after this line:
+
+response = self.model.generate_content(prompt)"
+- **CoPilot Mode**: Edit
+- **CoPilot Model**: GPT-5.4 mini
+- **Socratic Mode**: ON
+- **Changes Made**: Updated `query_layer.py` to read Gemini `usage_metadata` after `generate_content`, map prompt tokens to `input_token_count`, map candidate tokens to `output_token_count`, and include both values in the success response.
+- **Context and Reasons for Changes**: User wanted the exact Python code to extract token usage from the Gemini response. Added defensive `getattr` handling so the code still works when `usage_metadata` is absent, and validated the file with `python3 -m py_compile` after the edit.
+
+### **New Interaction**
+
+- **Agent Version**: 2.3
 - **Date**: 19-05-2026 01:45
 - **User**: default_user
 - **Prompt**: "I would like to implement code reader next but first explain me methods it is going to have which differentiate it from textreader"
@@ -942,3 +958,8 @@
 - **Hook Version**: 1.02
 - **Date**: 26-05-2026 00:32
 - **Prompt**: How can I extract input_token_count and output_token_count  from a Gemini API response in Python? Show me the exact  code I need to add in query_layer.py after this line:  response = self.model.generate_content(prompt)
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 00:34
+- **Prompt**: What MySQL table structure would you recommend to log  token usage per API call? Give me: 1. The CREATE TABLE SQL statement 2. A new function in db.py called insert_api_usage_log()     that saves: document_id, query_text, input_tokens,     output_tokens, total_tokens, created_at

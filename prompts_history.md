@@ -55,3 +55,6 @@
 ### 26-05-2026 00:32
 - **Prompt**: How can I extract input_token_count and output_token_count  from a Gemini API response in Python? Show me the exact  code I need to add in query_layer.py after this line:  response = self.model.generate_content(prompt)
 
+### 26-05-2026 00:34
+- **Prompt**: What MySQL table structure would you recommend to log  token usage per API call? Give me: 1. The CREATE TABLE SQL statement 2. A new function in db.py called insert_api_usage_log()     that saves: document_id, query_text, input_tokens,     output_tokens, total_tokens, created_at
+
