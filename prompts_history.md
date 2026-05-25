@@ -49,3 +49,6 @@
 ### 24-05-2026 03:14
 - **Prompt**: Gemini API error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID" domain: "googleapis.com" metadata { key: "service" value: "generativelanguage.googleapis.com" } , locale: "en-US" message: "API key not valid. Please pass a valid API key." ]
 
+### 26-05-2026 00:30
+- **Prompt**: "What does the Gemini API response object look like?      Does it include token usage information?"
+

@@ -919,3 +919,8 @@
   3. **Option C (Query Smarts)**: Concept expansion, multi-search, result re-ranking. 3-4 hours. Better AI accuracy.
 - **Recommendation**: Option A (Frontend) for capstone because: demonstrates usability, looks impressive visually, proves architecture works, time-effective.
 - **Pending User Decision**: Which path to pursue (A/B/C) to finish MVP stage.
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 26-05-2026 00:30
+- **Prompt**: "What does the Gemini API response object look like?      Does it include token usage information?"
