@@ -125,6 +125,9 @@ Answer:"""
             # Call Gemini
             response = self.model.generate_content(prompt)
             answer = response.text.strip() if response.text else ""
+            usage_metadata = getattr(response, 'usage_metadata', None)
+            input_token_count = getattr(usage_metadata, 'prompt_token_count', None)
+            output_token_count = getattr(usage_metadata, 'candidates_token_count', None)
             
             if not answer:
                 return {
@@ -134,7 +137,9 @@ Answer:"""
             
             return {
                 'success': True,
-                'answer': answer
+                'answer': answer,
+                'input_token_count': input_token_count,
+                'output_token_count': output_token_count
             }
         
         except ValueError as e:
