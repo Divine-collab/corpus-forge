@@ -79,19 +79,87 @@ class AIQueryLayer:
             return truncated + "\n\n[Document truncated due to length...]"
         return text
     
-    def query(self, user_question, document_text):
+    def _build_steered_prompt(self, base_prompt, steering):
         """
-        Answer a question about a document using Gemini.
+        Inject steering parameters into the prompt to customize response style.
+        
+        Args:
+            base_prompt (str): The original prompt template
+            steering (dict): Steering parameters:
+                - audience_level: 'beginner', 'intermediate', or 'expert'
+                - tone: 'professional', 'casual', or 'academic'
+                - output_format: 'summary', 'detailed', or 'code'
+                - creativity: 'literal', 'balanced', or 'creative'
+        
+        Returns:
+            str: Modified prompt with steering instructions injected
+        """
+        # Extract steering parameters with defaults
+        audience = steering.get('audience_level', 'intermediate')
+        tone = steering.get('tone', 'professional')
+        output_format = steering.get('output_format', 'detailed')
+        creativity = steering.get('creativity', 'balanced')
+        
+        # Build audience description
+        audience_desc = {
+            'beginner': 'a beginner with no technical background',
+            'intermediate': 'someone with intermediate knowledge',
+            'expert': 'an expert in the field'
+        }.get(audience, 'someone with intermediate knowledge')
+        
+        # Build tone description
+        tone_desc = {
+            'professional': 'professional and formal',
+            'casual': 'conversational and casual',
+            'academic': 'academic and scholarly'
+        }.get(tone, 'professional and formal')
+        
+        # Build format description
+        format_desc = {
+            'summary': 'a concise summary',
+            'detailed': 'a detailed explanation',
+            'code': 'with code examples where applicable'
+        }.get(output_format, 'a detailed explanation')
+        
+        # Build creativity description
+        creativity_desc = {
+            'literal': 'strictly based on the document content',
+            'balanced': 'grounded in the document with some helpful context',
+            'creative': 'drawing on broader knowledge and creative interpretations'
+        }.get(creativity, 'grounded in the document with some helpful context')
+        
+        # Inject steering instructions at the beginning of the prompt
+        steered_prompt = f"""You are answering a question for {audience_desc}. 
+Your response should be {tone_desc} in tone.
+Format your answer as {format_desc}.
+Keep your response {creativity_desc}.
+
+{base_prompt}"""
+        
+        return steered_prompt
+    
+    def query(self, user_question, document_text, steering=None):
+        """
+        Answer a question about a document using Gemini with optional prompt steering.
         
         Args:
             user_question (str): The question to ask
             document_text (str): The document content to query
+            steering (dict, optional): Prompt steering parameters:
+                {
+                    "audience_level": "beginner|intermediate|expert",
+                    "tone": "professional|casual|academic",
+                    "output_format": "summary|detailed|code",
+                    "creativity": "literal|balanced|creative"
+                }
             
         Returns:
             dict: {
                 'success': bool,
                 'answer': str (if success=True),
-                'error': str (if success=False)
+                'error': str (if success=False),
+                'input_token_count': int,
+                'output_token_count': int
             }
         """
         try:
@@ -111,8 +179,8 @@ class AIQueryLayer:
             # Truncate document if needed
             truncated_doc = self._truncate_document(document_text)
             
-            # Build prompt
-            prompt = f"""Given the document below, answer this question concisely. 
+            # Build base prompt
+            base_prompt = f"""Given the document below, answer this question concisely. 
 If the document does not contain information to answer the question, say "Not found in document".
 
 Question: {user_question}
@@ -121,6 +189,12 @@ Document:
 {truncated_doc}
 
 Answer:"""
+            
+            # Inject steering instructions if provided
+            if steering and isinstance(steering, dict):
+                prompt = self._build_steered_prompt(base_prompt, steering)
+            else:
+                prompt = base_prompt
             
             # Call Gemini
             response = self.model.generate_content(prompt)

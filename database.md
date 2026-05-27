@@ -23,4 +23,19 @@ CREATE TABLE uploaded_files (
 
 
 ### print table 
-select * from uploaded_files
+select * from uploaded_files;
+
+
+CREATE TABLE api_usage_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    document_id INT NOT NULL,
+    query_text LONGTEXT,
+    input_tokens INT,
+    output_tokens INT,
+    total_tokens INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES uploaded_files(id) ON DELETE CASCADE
+);
+
+### print api usage logs
+select * from api_usage_logs;

@@ -13,8 +13,32 @@ const queryDocument = document.getElementById('queryDocument');
 const queryInput = document.getElementById('queryInput');
 const queryStatus = document.getElementById('queryStatus');
 const answerBox = document.getElementById('answerBox');
+const answerContent = document.getElementById('answerContent');
+const tokenInfo = document.getElementById('tokenInfo');
+const refreshStats = document.getElementById('refreshStats');
+const totalRequests = document.getElementById('totalRequests');
+const totalTokens = document.getElementById('totalTokens');
+const inputTokens = document.getElementById('inputTokens');
+const outputTokens = document.getElementById('outputTokens');
 
 let documentsCache = [];
+
+// Load and display API statistics
+async function loadStats() {
+	try {
+		const response = await fetch('/stats');
+		const data = await response.json();
+
+		if (response.ok && data.success) {
+			totalRequests.textContent = data.total_api_requests || 0;
+			totalTokens.textContent = (data.total_tokens_overall || 0).toLocaleString();
+			inputTokens.textContent = (data.total_input_tokens || 0).toLocaleString();
+			outputTokens.textContent = (data.total_output_tokens || 0).toLocaleString();
+		}
+	} catch (error) {
+		console.error('Failed to load stats:', error);
+	}
+}
 
 function getActiveIds() {
 	try {
@@ -233,11 +257,24 @@ queryForm.addEventListener('submit', async event => {
 	try {
 		setStatus(queryStatus, 'Waiting for Gemini...');
 		answerBox.classList.add('hidden');
+		tokenInfo.classList.add('hidden');
+
+		// Extract steering parameters from dropdowns
+		const steeringParams = {
+			audience_level: document.getElementById('audienceLevel').value,
+			tone: document.getElementById('tone').value,
+			output_format: document.getElementById('outputFormat').value,
+			creativity: document.getElementById('creativity').value
+		};
 
 		const response = await fetch('/query', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ query: question, document_id: Number(documentId) })
+			body: JSON.stringify({
+				query: question,
+				document_id: Number(documentId),
+				steering: steeringParams
+			})
 		});
 		const data = await response.json();
 
@@ -245,14 +282,45 @@ queryForm.addEventListener('submit', async event => {
 			throw new Error(data.error || 'AI query failed');
 		}
 
-		answerBox.textContent = data.answer;
+		// Display answer
+		answerContent.textContent = data.answer;
 		answerBox.classList.remove('hidden');
+
+		// Display token usage if available
+		if (data.input_token_count !== undefined || data.output_token_count !== undefined) {
+			const inTokens = data.input_token_count || 0;
+			const outTokens = data.output_token_count || 0;
+			const totalTokensUsed = inTokens + outTokens;
+
+			tokenInfo.innerHTML = `
+				<div class="token-stat">
+					<span class="token-stat-label">Input Tokens:</span>
+					<span>${inTokens.toLocaleString()}</span>
+				</div>
+				<div class="token-stat">
+					<span class="token-stat-label">Output Tokens:</span>
+					<span>${outTokens.toLocaleString()}</span>
+				</div>
+				<div class="token-stat">
+					<span class="token-stat-label">Total Tokens:</span>
+					<span>${totalTokensUsed.toLocaleString()}</span>
+				</div>
+			`;
+			tokenInfo.classList.remove('hidden');
+
+			// Refresh stats after query
+			await loadStats();
+		}
+
 		setStatus(queryStatus, 'Answer ready.', 'success');
 	} catch (error) {
 		setStatus(queryStatus, error.message, 'error');
 	}
 });
 
+refreshStats.addEventListener('click', loadStats);
+
 document.addEventListener('DOMContentLoaded', async () => {
 	await loadDocuments();
+	await loadStats();
 });

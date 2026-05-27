@@ -251,7 +251,16 @@ def query():
 	Request JSON parameters:
 	{
 		"query": "string" (required, the question to ask),
-		"document_id": int (required, the document to query)
+		"document_id": int (required, the document to query),
+		"steering": dict (optional, prompt steering parameters)
+	}
+	
+	Steering parameters (optional):
+	{
+		"audience_level": "beginner|intermediate|expert",
+		"tone": "professional|casual|academic",
+		"output_format": "summary|detailed|code",
+		"creativity": "literal|balanced|creative"
 	}
 	
 	Returns:
@@ -272,6 +281,7 @@ def query():
 		# Extract parameters
 		user_query = data.get('query', '').strip()
 		document_id = data.get('document_id')
+		steering = data.get('steering', {})
 		
 		# Validate inputs
 		if not user_query:
@@ -291,8 +301,8 @@ def query():
 		# Initialize AI Query Layer
 		ai_layer = AIQueryLayer()
 		
-		# Ask question about document
-		result = ai_layer.query(user_query, document_text)
+		# Ask question about document with steering parameters
+		result = ai_layer.query(user_query, document_text, steering=steering)
 		input_token_count = result.get('input_token_count')
 		output_token_count = result.get('output_token_count')
 

@@ -21,6 +21,36 @@
 			</div>
 		</header>
 
+		<!-- Cost Observability Dashboard -->
+		<section class="cost-dashboard">
+			<div class="dashboard-header">
+				<h2>API Usage & Cost Observability</h2>
+				<button id="refreshStats" type="button" class="secondary">Refresh Stats</button>
+			</div>
+			<div class="stats-grid">
+				<div class="stat-card">
+					<span class="stat-label">Total Requests</span>
+					<strong id="totalRequests">0</strong>
+					<span class="stat-unit">API calls</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Total Tokens Used</span>
+					<strong id="totalTokens">0</strong>
+					<span class="stat-unit">tokens</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Input Tokens</span>
+					<strong id="inputTokens">0</strong>
+					<span class="stat-unit">tokens</span>
+				</div>
+				<div class="stat-card">
+					<span class="stat-label">Output Tokens</span>
+					<strong id="outputTokens">0</strong>
+					<span class="stat-unit">tokens</span>
+				</div>
+			</div>
+		</section>
+
 		<main class="grid">
 			<section class="panel">
 				<div class="panel-header">
@@ -62,12 +92,62 @@
 					<select id="queryDocument" required>
 						<option value="">Select an active document</option>
 					</select>
+
+					<!-- Prompt Steering Controls -->
+					<fieldset class="steering-controls">
+						<legend>Prompt Steering (Optional)</legend>
+						<p class="steering-hint">Customize how the AI should respond to your question</p>
+
+						<div class="steering-row">
+							<div class="steering-group">
+								<label for="audienceLevel">Audience Level:</label>
+								<select id="audienceLevel" class="steering-select">
+									<option value="beginner">Beginner (simple, with analogies)</option>
+									<option value="intermediate" selected>Intermediate (technical terms)</option>
+									<option value="expert">Expert (deep technical dive)</option>
+								</select>
+							</div>
+
+							<div class="steering-group">
+								<label for="tone">Tone:</label>
+								<select id="tone" class="steering-select">
+									<option value="professional" selected>Professional (formal, business-like)</option>
+									<option value="casual">Casual (friendly, conversational)</option>
+									<option value="academic">Academic (scholarly, research-focused)</option>
+								</select>
+							</div>
+						</div>
+
+						<div class="steering-row">
+							<div class="steering-group">
+								<label for="outputFormat">Output Format:</label>
+								<select id="outputFormat" class="steering-select">
+									<option value="summary">Summary (bullet points)</option>
+									<option value="detailed" selected>Detailed (full explanation)</option>
+									<option value="code">Code-focused (implementation)</option>
+								</select>
+							</div>
+
+							<div class="steering-group">
+								<label for="creativity">Creativity Level:</label>
+								<select id="creativity" class="steering-select">
+									<option value="literal">Literal (document only)</option>
+									<option value="balanced" selected>Balanced (document + context)</option>
+									<option value="creative">Creative (document + insights)</option>
+								</select>
+							</div>
+						</div>
+					</fieldset>
+
 					<textarea id="queryInput" rows="5" placeholder="Ask about themes, topics, keywords, or summary..." required></textarea>
 					<button type="submit" class="primary">Ask Gemini</button>
 				</form>
-				<div id="queryStatus" class="status"></div>
-				<div id="answerBox" class="answer-box hidden"></div>
-			</section>
+			<div id="queryStatus" class="status"></div>
+			<div id="answerBox" class="answer-box hidden">
+				<div id="answerContent" class="answer-content"></div>
+				<div id="tokenInfo" class="token-info hidden"></div>
+			</div>
+		</section>
 		</main>
 	</div>
 
