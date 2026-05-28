@@ -85,3 +85,6 @@
 ### 28-05-2026 04:07
 - **Prompt**: i want the frontend word-cloud rendering and basic interactions
 
+### 28-05-2026 04:14
+- **Prompt**: its not showing any visualize option on main
+
