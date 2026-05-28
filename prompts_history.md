@@ -91,3 +91,6 @@
 ### 28-05-2026 04:17
 - **Prompt**: its not working its not giving the option of selecting active document
 
+### 28-05-2026 04:19
+- **Prompt**: generate cloud isnt wokring
+
