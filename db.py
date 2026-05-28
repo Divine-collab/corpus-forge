@@ -401,3 +401,192 @@ def get_quizzes_by_document(document_id):
             connection.close()
         except Exception:
             pass
+
+
+# ─────────────────────────────────────────
+# 7. FLASHCARD OPERATIONS
+# ─────────────────────────────────────────
+def insert_flashcard_set(document_id, set_title, num_cards):
+    """
+    Inserts a flashcard set record into flashcard_sets table.
+    Returns the new set ID on success, None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = """
+            INSERT INTO flashcard_sets
+                (document_id, set_title, num_cards)
+            VALUES
+                (%s, %s, %s)
+        """
+        values = (document_id, set_title, num_cards)
+        cursor.execute(query, values)
+        connection.commit()
+        return cursor.lastrowid
+    except Error as e:
+        print(f"[DB] Insert flashcard set error: {e}")
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def insert_flashcard(flashcard_set_id, front_text, back_text, card_order):
+    """
+    Inserts a flashcard into flashcards table.
+    Returns the new card ID on success, None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = """
+            INSERT INTO flashcards
+                (flashcard_set_id, front_text, back_text, card_order)
+            VALUES
+                (%s, %s, %s, %s)
+        """
+        values = (flashcard_set_id, front_text, back_text, card_order)
+        cursor.execute(query, values)
+        connection.commit()
+        return cursor.lastrowid
+    except Error as e:
+        print(f"[DB] Insert flashcard error: {e}")
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def get_flashcard_set(flashcard_set_id):
+    """
+    Retrieve a flashcard set with all its cards by set ID.
+    Returns a dict with set metadata and list of cards, or None if not found.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        
+        # Get set metadata
+        set_query = "SELECT id, document_id, set_title, num_cards, created_at FROM flashcard_sets WHERE id = %s"
+        cursor.execute(set_query, (flashcard_set_id,))
+        set_result = cursor.fetchone()
+        
+        if not set_result:
+            return None  # Set not found
+        
+        set_id, doc_id, title, num_cards, created_at = set_result
+        
+        # Get all cards in this set
+        cards_query = "SELECT id, front_text, back_text, card_order FROM flashcards WHERE flashcard_set_id = %s ORDER BY card_order ASC"
+        cursor.execute(cards_query, (flashcard_set_id,))
+        cards_result = cursor.fetchall()
+        
+        # Format cards as list of dicts
+        cards = []
+        for card in cards_result:
+            cards.append({
+                'id': card[0],
+                'front': card[1],
+                'back': card[2],
+                'order': card[3]
+            })
+        
+        return {
+            'id': set_id,
+            'document_id': doc_id,
+            'title': title,
+            'num_cards': num_cards,
+            'created_at': str(created_at),
+            'cards': cards
+        }
+    
+    except Error as e:
+        print(f"[DB] Get flashcard set error: {e}")
+        return None
+    
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def get_flashcard_sets_by_document(document_id):
+    """
+    Retrieve all flashcard sets for a given document.
+    Returns a list of dicts with set metadata (without cards), or empty list on error.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return []
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = """
+            SELECT id, document_id, set_title, num_cards, created_at 
+            FROM flashcard_sets 
+            WHERE document_id = %s 
+            ORDER BY created_at DESC
+        """
+        cursor.execute(query, (document_id,))
+        results = cursor.fetchall()
+        
+        sets = []
+        for row in results:
+            sets.append({
+                'id': row[0],
+                'document_id': row[1],
+                'title': row[2],
+                'num_cards': row[3],
+                'created_at': str(row[4])
+            })
+        
+        return sets
+    
+    except Error as e:
+        print(f"[DB] Get flashcard sets error: {e}")
+        return []
+    
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass

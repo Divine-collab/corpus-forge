@@ -361,3 +361,140 @@ Generate the quiz:"""
             i += 1
         
         return questions
+    
+    def generate_flashcards(self, document_text, num_cards=10):
+        """
+        Generate flashcard Q&A pairs from document text using Gemini.
+        
+        Args:
+            document_text (str): The source document text
+            num_cards (int): Number of flashcards to generate (default 10)
+        
+        Returns:
+            dict: {'success': bool, 'flashcards': [{'front': str, 'back': str}], 'error': str}
+        """
+        try:
+            if not document_text or not document_text.strip():
+                return {
+                    'success': False,
+                    'error': 'Document text cannot be empty'
+                }
+            
+            # Truncate document if needed
+            truncated_doc = self._truncate_document(document_text)
+            
+            # Build prompt for flashcard generation
+            prompt = f"""Based on the document below, generate exactly {num_cards} flashcard question-answer pairs.
+
+For each flashcard, provide:
+1. Front (question/concept to study)
+2. Back (answer/explanation)
+
+Format each card like this:
+Card 1 Front: [Question or concept]
+Card 1 Back: [Comprehensive answer or explanation]
+
+Card 2 Front: [Question or concept]
+Card 2 Back: [Comprehensive answer or explanation]
+
+... and so on
+
+Document:
+{truncated_doc}
+
+Generate the flashcards:"""
+            
+            # Call Gemini
+            response = self.model.generate_content(prompt)
+            response_text = response.text.strip() if response.text else ""
+            
+            if not response_text:
+                return {
+                    'success': False,
+                    'error': 'Gemini returned empty response'
+                }
+            
+            # Parse flashcards from response
+            flashcards = self._parse_flashcards(response_text)
+            
+            if not flashcards:
+                return {
+                    'success': False,
+                    'error': 'Could not parse flashcards from response'
+                }
+            
+            return {
+                'success': True,
+                'flashcards': flashcards
+            }
+        
+        except ValueError as e:
+            return {
+                'success': False,
+                'error': f'Configuration error: {str(e)}'
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Gemini API error: {str(e)}'
+            }
+    
+    def _parse_flashcards(self, text):
+        """
+        Parse flashcards from Gemini response text.
+        Expects format: Card N Front: ...\nCard N Back: ...
+        
+        Returns list of flashcard dicts with 'front' and 'back' keys.
+        """
+        flashcards = []
+        lines = text.split('\n')
+        
+        current_front = None
+        i = 0
+        
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Look for "Card N Front:" pattern
+            if line and 'Front:' in line.lower() and any(c.isdigit() for c in line):
+                # Extract front text
+                parts = line.split('Front:', 1)
+                if len(parts) > 1:
+                    current_front = parts[1].strip()
+                    
+                    # Look for corresponding "Card N Back:" on following lines
+                    i += 1
+                    while i < len(lines):
+                        back_line = lines[i].strip()
+                        if back_line and 'Back:' in back_line.lower():
+                            # Extract back text (could be multi-line)
+                            back_parts = back_line.split('Back:', 1)
+                            if len(back_parts) > 1:
+                                current_back = back_parts[1].strip()
+                                
+                                # Continue reading back text until we hit the next card or end
+                                i += 1
+                                while i < len(lines):
+                                    next_line = lines[i].strip()
+                                    # Stop if we see the next card
+                                    if next_line and 'Front:' in next_line.lower() and any(c.isdigit() for c in next_line):
+                                        i -= 1  # Back up so outer loop processes this line
+                                        break
+                                    elif next_line:  # Append continuation lines to back
+                                        current_back += '\n' + next_line
+                                    i += 1
+                                
+                                # Add flashcard if we have both front and back
+                                if current_front and current_back:
+                                    flashcards.append({
+                                        'front': current_front,
+                                        'back': current_back
+                                    })
+                                current_front = None
+                                break
+                        i += 1
+            
+            i += 1
+        
+        return flashcards
+

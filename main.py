@@ -23,7 +23,11 @@ from db import (
 	insert_quiz_question,
 	get_quiz,
 	get_quizzes_by_document,
-	delete_uploaded_file
+	delete_uploaded_file,
+	insert_flashcard_set,
+	insert_flashcard,
+	get_flashcard_set,
+	get_flashcard_sets_by_document
 )
 
 
@@ -551,6 +555,156 @@ def list_quizzes(document_id):
 		}), 500
 
 
+# ─────────────────────────────────────────
+# FLASHCARD ENDPOINTS
+# ─────────────────────────────────────────
+@app.route("/generate_flashcards", methods=["POST"])
+def generate_flashcards():
+	"""
+	Generate flashcards from a selected document.
+	
+	Request JSON:
+	{
+		"document_id": <id>,
+		"num_cards": <int>,
+		"set_title": <optional string>
+	}
+	
+	Returns:
+	{
+		"success": bool,
+		"flashcard_set_id": <id>,
+		"flashcards": [{"front": str, "back": str}, ...],
+		"error": str
+	}
+	"""
+	try:
+		data = request.get_json()
+		if not data:
+			return jsonify({'success': False, 'error': 'No JSON data'}), 400
+		
+		document_id = data.get('document_id')
+		num_cards = data.get('num_cards', 10)
+		set_title = data.get('set_title', f'Flashcard Set #{document_id}')
+		
+		if not document_id:
+			return jsonify({'success': False, 'error': 'document_id required'}), 400
+		
+		# Get document text
+		doc_result = get_document_text(document_id)
+		if not doc_result:
+			return jsonify({'success': False, 'error': 'Document not found'}), 404
+		
+		document_text = doc_result.get('cleaned_text', '')
+		
+		# Initialize AI layer and generate flashcards
+		try:
+			ai_layer = AIQueryLayer()
+		except ValueError as e:
+			return jsonify({'success': False, 'error': str(e)}), 500
+		
+		result = ai_layer.generate_flashcards(document_text, num_cards)
+		
+		if not result['success']:
+			return jsonify(result), 400
+		
+		flashcards = result['flashcards']
+		
+		# Save flashcard set to database
+		set_id = insert_flashcard_set(document_id, set_title, len(flashcards))
+		if not set_id:
+			return jsonify({'success': False, 'error': 'Failed to save flashcard set'}), 500
+		
+		# Save individual flashcards
+		for idx, card in enumerate(flashcards):
+			insert_flashcard(set_id, card['front'], card['back'], idx + 1)
+		
+		return jsonify({
+			'success': True,
+			'flashcard_set_id': set_id,
+			'flashcards': flashcards
+		}), 201
+	
+	except Exception as e:
+		return jsonify({
+			'success': False,
+			'error': f'Server error: {str(e)}'
+		}), 500
+
+
+@app.route("/get_flashcard_set/<int:set_id>", methods=["GET"])
+def get_flashcards(set_id):
+	"""
+	Retrieve a flashcard set with all its cards.
+	
+	Returns:
+	{
+		"success": bool,
+		"flashcard_set": {
+			"id": int,
+			"document_id": int,
+			"title": str,
+			"num_cards": int,
+			"cards": [{"id": int, "front": str, "back": str, "order": int}, ...],
+			"created_at": str
+		},
+		"error": str
+	}
+	"""
+	try:
+		flashcard_set = get_flashcard_set(set_id)
+		
+		if not flashcard_set:
+			return jsonify({'success': False, 'error': 'Flashcard set not found'}), 404
+		
+		return jsonify({
+			'success': True,
+			'flashcard_set': flashcard_set
+		}), 200
+	
+	except Exception as e:
+		return jsonify({
+			'success': False,
+			'error': f'Server error: {str(e)}'
+		}), 500
+
+
+@app.route("/list_flashcard_sets/<int:document_id>", methods=["GET"])
+def list_flashcard_sets(document_id):
+	"""
+	List all flashcard sets for a document.
+	
+	Returns:
+	{
+		"success": bool,
+		"flashcard_sets": [
+			{
+				"id": int,
+				"document_id": int,
+				"title": str,
+				"num_cards": int,
+				"created_at": str
+			},
+			...
+		]
+	}
+	"""
+	try:
+		flashcard_sets = get_flashcard_sets_by_document(document_id)
+		
+		return jsonify({
+			'success': True,
+			'flashcard_sets': flashcard_sets
+		}), 200
+	
+	except Exception as e:
+		return jsonify({
+			'success': False,
+			'error': f'Server error: {str(e)}'
+		}), 500
+
+
 if __name__ == "__main__":
 	# TODO: decide whether debug=True should stay on while developing.
 	app.run(debug=True)
+

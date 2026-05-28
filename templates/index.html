@@ -172,9 +172,60 @@
 				<div id="quizResults" class="quiz-results hidden"></div>
 			</div>
 		</section>
-		</main>
 	</div>
 
 	<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
+		<section class="panel">
+			<h3>🎴 Generate Flashcards</h3>
+			<form id="flashcardForm" class="stack">
+				<div class="form-row">
+					<label for="flashcardDocument">Document:</label>
+					<select id="flashcardDocument" required>
+						<option value="">Select a document</option>
+					</select>
+				</div>
+				<div class="form-row">
+					<label for="numCards">Number of Cards:</label>
+					<input type="number" id="numCards" min="1" max="20" value="10" required>
+				</div>
+				<div class="form-row">
+					<label for="flashcardTitle">Set Title (optional):</label>
+					<input type="text" id="flashcardTitle" placeholder="e.g., Chapter 3 Concepts">
+				</div>
+				<button type="submit" class="btn">Generate Flashcards</button>
+			</form>
+			<div id="flashcardStatus" class="status"></div>
+			<div id="flashcardBox" class="flashcard-box hidden">
+				<h4 id="flashcardSetTitle"></h4>
+				<div id="flashcardListContainer" class="flashcard-list"></div>
+				<div id="flashcardStudyMode" class="flashcard-study hidden">
+					<div class="flashcard-display">
+						<div id="flashcardFlipContainer" class="flashcard-flip-container">
+							<div class="flashcard-inner">
+								<div class="flashcard-front">
+									<p id="flashcardFrontText"></p>
+									<p class="flashcard-hint">(Click to reveal answer)</p>
+								</div>
+								<div class="flashcard-back">
+									<p id="flashcardBackText"></p>
+									<p class="flashcard-hint">(Click to flip back)</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="flashcard-controls">
+						<button id="prevCardBtn" class="btn">← Previous</button>
+						<span id="cardProgress">1 / 10</span>
+						<button id="nextCardBtn" class="btn">Next →</button>
+					</div>
+				</div>
+			</div>
+		</section>
+</main>
+</div>
+
+<script src="{{ url_for("static", filename="app.js") }}"></script>
 </body>
 </html>
