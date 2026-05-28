@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Project Explorer — Corpus Forge</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='explore.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1>Corpus Forge — Project Explorer</h1>
+    <p>Auto-generated overview: tree, modules, endpoints, DB models, execution flow, and diagrams.</p>
+  </header>
+
+  <main class="container">
+    <section class="panel" id="project-tree">
+      <h2>Project tree</h2>
+      <div id="tree"></div>
+    </section>
+
+    <section class="panel" id="modules">
+      <h2>Modules & imports</h2>
+      <div id="modules-list"></div>
+    </section>
+
+    <section class="panel" id="endpoints">
+      <h2>API endpoints</h2>
+      <div id="endpoints-list"></div>
+      <div class="diagram" id="endpoints-diagram"></div>
+    </section>
+
+    <section class="panel" id="db-models">
+      <h2>Database models</h2>
+      <div id="db-list"></div>
+      <div class="diagram" id="db-diagram"></div>
+    </section>
+
+    <section class="panel" id="execution">
+      <h2>Execution flow</h2>
+      <div id="execution-diagram" class="diagram"></div>
+    </section>
+
+    <section class="panel" id="file-summaries">
+      <h2>File summaries</h2>
+      <div id="summaries"></div>
+    </section>
+
+    <section class="panel" id="links">
+      <h2>Links between components</h2>
+      <div id="links-graph" class="diagram"></div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='explore.js') }}"></script>
+</body>
+</html>

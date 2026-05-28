@@ -1,0 +1,12 @@
+:root{--bg:#0b1220;--panel:#0f172a;--text:#e6eef8;--muted:#9aa9bf;--accent:#60a5fa}
+*{box-sizing:border-box}
+body{font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#041025 0%,#071026 100%);color:var(--text);margin:0;padding:24px}
+.top{max-width:1100px;margin:0 auto 18px}
+.container{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.panel{background:rgba(8,12,20,0.7);border:1px solid rgba(255,255,255,0.03);padding:14px;border-radius:10px}
+.panel h2{margin:0 0 8px;font-size:1.1rem;color:var(--accent)}
+.diagram{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;margin-top:8px}
+#tree pre,#modules-list pre,#endpoints-list pre,#db-list pre,#summaries pre{white-space:pre-wrap;font-family:monospace;color:var(--muted);background:transparent;border:0}
+@media(max-width:900px){.container{grid-template-columns:1fr}}
+.link{color:var(--accent);text-decoration:none}
+.small{font-size:0.9rem;color:var(--muted)}
