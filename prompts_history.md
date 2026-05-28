@@ -88,3 +88,6 @@
 ### 28-05-2026 04:14
 - **Prompt**: its not showing any visualize option on main
 
+### 28-05-2026 04:17
+- **Prompt**: its not working its not giving the option of selecting active document
+
