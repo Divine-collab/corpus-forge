@@ -228,3 +228,136 @@ Answer:"""
                 'success': False,
                 'error': f'Gemini API error: {str(e)}'
             }
+    
+    def generate_quiz(self, document_text, num_questions=5):
+        """
+        Generate quiz questions from a document using Gemini.
+        
+        Args:
+            document_text (str): The document to generate quiz from
+            num_questions (int): Number of questions to generate (default 5)
+            
+        Returns:
+            dict: {
+                'success': bool,
+                'questions': list of dicts with 'question' and 'correct_answer',
+                'error': str (if success=False)
+            }
+        """
+        try:
+            if not document_text or not document_text.strip():
+                return {
+                    'success': False,
+                    'error': 'Document text cannot be empty'
+                }
+            
+            # Truncate document if needed
+            truncated_doc = self._truncate_document(document_text)
+            
+            # Build prompt for quiz generation
+            prompt = f"""Based on the document below, generate exactly {num_questions} multiple-choice quiz questions.
+
+For each question, provide:
+1. Question text
+2. Four options (A, B, C, D)
+3. Correct answer (A, B, C, or D)
+
+Format each question like this:
+Q1: [Question text]
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+Answer: [A/B/C/D]
+
+Document:
+{truncated_doc}
+
+Generate the quiz:"""
+            
+            # Call Gemini
+            response = self.model.generate_content(prompt)
+            response_text = response.text.strip() if response.text else ""
+            
+            if not response_text:
+                return {
+                    'success': False,
+                    'error': 'Gemini returned empty response'
+                }
+            
+            # Parse questions from response
+            questions = self._parse_quiz_questions(response_text)
+            
+            if not questions:
+                return {
+                    'success': False,
+                    'error': 'Could not parse quiz questions from response'
+                }
+            
+            return {
+                'success': True,
+                'questions': questions
+            }
+        
+        except ValueError as e:
+            return {
+                'success': False,
+                'error': f'Configuration error: {str(e)}'
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Gemini API error: {str(e)}'
+            }
+    
+    def _parse_quiz_questions(self, text):
+        """
+        Parse quiz questions from Gemini response text.
+        Expects format: Q1: Question\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: X
+        
+        Returns list of question dicts with 'question' and 'correct_answer' keys.
+        """
+        questions = []
+        lines = text.split('\n')
+        
+        current_question = None
+        i = 0
+        
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Look for question line (Q1:, Q2:, etc.)
+            if line and (line.startswith('Q') and ':' in line):
+                current_question = {
+                    'question': line.split(':', 1)[1].strip(),
+                    'options': {},
+                    'correct_answer': None
+                }
+                
+                # Next lines should be options A, B, C, D
+                i += 1
+                option_count = 0
+                while i < len(lines) and option_count < 4:
+                    opt_line = lines[i].strip()
+                    if opt_line and opt_line[0] in 'ABCD' and ')' in opt_line:
+                        option_key = opt_line[0]
+                        option_text = opt_line.split(')', 1)[1].strip() if ')' in opt_line else ''
+                        current_question['options'][option_key] = option_text
+                        option_count += 1
+                    i += 1
+                
+                # Look for answer line
+                if i < len(lines):
+                    answer_line = lines[i].strip()
+                    if answer_line and 'Answer:' in answer_line.upper():
+                        answer = answer_line.split(':')[1].strip().upper()
+                        if answer in 'ABCD':
+                            current_question['correct_answer'] = answer
+                
+                # Only add if we have all required fields
+                if current_question.get('correct_answer') and len(current_question.get('options', {})) >= 4:
+                    questions.append(current_question)
+            
+            i += 1
+        
+        return questions

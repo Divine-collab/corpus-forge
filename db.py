@@ -251,3 +251,153 @@ def delete_uploaded_file(document_id):
             connection.close()
         except Exception:
             pass
+
+
+# ─────────────────────────────────────────
+# 6. QUIZ OPERATIONS
+# ─────────────────────────────────────────
+def insert_quiz(document_id, quiz_title, num_questions):
+    """
+    Inserts a quiz record into quizzes table.
+    Returns the new quiz ID on success, None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = """
+            INSERT INTO quizzes
+                (document_id, quiz_title, num_questions)
+            VALUES
+                (%s, %s, %s)
+        """
+        values = (document_id, quiz_title, num_questions)
+        cursor.execute(query, values)
+        connection.commit()
+        return cursor.lastrowid
+    except Error as e:
+        print(f"[DB] Insert quiz error: {e}")
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def insert_quiz_question(quiz_id, question_text, question_type, correct_answer):
+    """
+    Inserts a quiz question into quiz_questions table.
+    Returns the new question ID on success, None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        query = """
+            INSERT INTO quiz_questions
+                (quiz_id, question_text, question_type, correct_answer)
+            VALUES
+                (%s, %s, %s, %s)
+        """
+        values = (quiz_id, question_text, question_type, correct_answer)
+        cursor.execute(query, values)
+        connection.commit()
+        return cursor.lastrowid
+    except Error as e:
+        print(f"[DB] Insert question error: {e}")
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def get_quiz(quiz_id):
+    """
+    Retrieves a quiz and all its questions by quiz ID.
+    Returns dict with quiz info and questions list, or None on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    cursor = None
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Get quiz
+        quiz_query = "SELECT * FROM quizzes WHERE id = %s"
+        cursor.execute(quiz_query, (quiz_id,))
+        quiz = cursor.fetchone()
+        
+        if not quiz:
+            return None
+        
+        # Get questions
+        questions_query = "SELECT * FROM quiz_questions WHERE quiz_id = %s ORDER BY id"
+        cursor.execute(questions_query, (quiz_id,))
+        questions = cursor.fetchall()
+        
+        quiz['questions'] = questions
+        return quiz
+    except Error as e:
+        print(f"[DB] Get quiz error: {e}")
+        return None
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass
+
+
+def get_quizzes_by_document(document_id):
+    """
+    Retrieves all quizzes for a document.
+    Returns list of quiz records, or empty list on failure.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return []
+
+    cursor = None
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = "SELECT id, quiz_title, num_questions, created_at FROM quizzes WHERE document_id = %s ORDER BY created_at DESC"
+        cursor.execute(query, (document_id,))
+        return cursor.fetchall()
+    except Error as e:
+        print(f"[DB] Get quizzes error: {e}")
+        return []
+    finally:
+        if cursor is not None:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        try:
+            connection.close()
+        except Exception:
+            pass

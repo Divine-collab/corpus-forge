@@ -483,6 +483,25 @@ CREATE TABLE api_usage_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (document_id) REFERENCES uploaded_files(id)
 );
+
+CREATE TABLE quizzes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    document_id INT NOT NULL,
+    quiz_title VARCHAR(255),
+    num_questions INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (document_id) REFERENCES uploaded_files(id)
+);
+
+CREATE TABLE quiz_questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_id INT NOT NULL,
+    question_text LONGTEXT,
+    question_type VARCHAR(50),
+    correct_answer VARCHAR(10),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quiz_id) REFERENCES quizzes(id)
+);
 ```
 
 ### 6. **Flask API Endpoints** (`main.py`)
@@ -492,7 +511,10 @@ CREATE TABLE api_usage_logs (
 | `/` | GET | Serve frontend | N/A | HTML page |
 | `/upload` | POST | Upload document | File + metadata | `{success, file_id, reader_type}` |
 | `/search` | POST | Search documents | `{keyword, file_type?, start_date?, end_date?}` | `{success, results[], total_found}` |
-| `/query` | POST | Ask AI question | `{document_id, query}` | `{success, answer, tokens}` |
+| `/query` | POST | Ask AI question | `{document_id, query, steering?}` | `{success, answer, tokens}` |
+| `/generate_quiz` | POST | Generate quiz | `{document_id, num_questions?}` | `{success, quiz_id, questions[]}` |
+| `/get_quiz/<id>` | GET | Retrieve quiz | `quiz_id` | `{success, quiz{}}` |
+| `/list_quizzes/<id>` | GET | List doc quizzes | `document_id` | `{success, quizzes[]}` |
 | `/stats` | GET | View API usage | N/A | `{total_requests, total_tokens, ...}` |
 | `/list-documents` | GET | List all documents | `?limit=50&file_type=` | `{success, documents[]}` |
 | `/test-db` | GET | Verify DB connection | N/A | `{status}` |

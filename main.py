@@ -14,7 +14,17 @@ from werkzeug.utils import secure_filename
 from reader_factory import ReaderFactory
 from search_layer import SearchQuery, SearchLayer, SearchLayerAPI
 from query_layer import AIQueryLayer
-from db import insert_uploaded_file, get_document_text, insert_api_usage_log, get_api_stats
+from db import (
+	insert_uploaded_file,
+	get_document_text,
+	insert_api_usage_log,
+	get_api_stats,
+	insert_quiz,
+	insert_quiz_question,
+	get_quiz,
+	get_quizzes_by_document,
+	delete_uploaded_file
+)
 
 
 app = Flask(__name__)
@@ -393,6 +403,153 @@ def stats():
 	except Exception as e:
 		return jsonify({'success': False, 'error': f'Stats error: {str(e)}'}), 500
 	
+
+@app.route("/generate_quiz", methods=["POST"])
+def generate_quiz():
+	"""
+	Generate quiz questions from a document.
+	
+	Request JSON parameters:
+	{
+		"document_id": int (required),
+		"num_questions": int (optional, default 5)
+	}
+	
+	Returns:
+	{
+		"success": bool,
+		"quiz_id": int (if success),
+		"questions": list (if success),
+		"error": string (if error)
+	}
+	"""
+	try:
+		data = request.get_json()
+		if not data:
+			return jsonify({'success': False, 'error': 'Request must be JSON'}), 400
+		
+		document_id = data.get('document_id')
+		num_questions = data.get('num_questions', 5)
+		
+		if document_id is None:
+			return jsonify({'success': False, 'error': 'document_id is required'}), 400
+		
+		if not isinstance(num_questions, int) or num_questions < 1 or num_questions > 20:
+			return jsonify({'success': False, 'error': 'num_questions must be between 1 and 20'}), 400
+		
+		# Fetch document text
+		document_text = get_document_text(document_id)
+		if document_text is None:
+			return jsonify({
+				'success': False,
+				'error': f'Document with ID {document_id} not found'
+			}), 404
+		
+		# Generate quiz using AI layer
+		ai_layer = AIQueryLayer()
+		result = ai_layer.generate_quiz(document_text, num_questions)
+		
+		if not result['success']:
+			return jsonify({
+				'success': False,
+				'error': result['error']
+			}), 400
+		
+		# Save quiz to database
+		quiz_title = f"Quiz for Document {document_id}"
+		quiz_id = insert_quiz(document_id, quiz_title, len(result['questions']))
+		
+		if quiz_id is None:
+			return jsonify({
+				'success': False,
+				'error': 'Failed to save quiz to database'
+			}), 500
+		
+		# Save quiz questions
+		for q in result['questions']:
+			insert_quiz_question(
+				quiz_id,
+				q['question'],
+				'multiple_choice',
+				q['correct_answer']
+			)
+		
+		return jsonify({
+			'success': True,
+			'quiz_id': quiz_id,
+			'questions': result['questions']
+		}), 200
+	
+	except Exception as e:
+		return jsonify({
+			'success': False,
+			'error': f'Server error: {str(e)}'
+		}), 500
+
+
+@app.route("/get_quiz/<int:quiz_id>", methods=["GET"])
+def get_quiz_endpoint(quiz_id):
+	"""
+	Retrieve a quiz by ID.
+	
+	Returns:
+	{
+		"success": bool,
+		"quiz": {
+			"id": int,
+			"document_id": int,
+			"quiz_title": string,
+			"num_questions": int,
+			"questions": list
+		}
+	}
+	"""
+	try:
+		quiz = get_quiz(quiz_id)
+		
+		if not quiz:
+			return jsonify({
+				'success': False,
+				'error': f'Quiz with ID {quiz_id} not found'
+			}), 404
+		
+		return jsonify({
+			'success': True,
+			'quiz': quiz
+		}), 200
+	
+	except Exception as e:
+		return jsonify({
+			'success': False,
+			'error': f'Server error: {str(e)}'
+		}), 500
+
+
+@app.route("/list_quizzes/<int:document_id>", methods=["GET"])
+def list_quizzes(document_id):
+	"""
+	List all quizzes for a document.
+	
+	Returns:
+	{
+		"success": bool,
+		"quizzes": list
+	}
+	"""
+	try:
+		quizzes = get_quizzes_by_document(document_id)
+		
+		return jsonify({
+			'success': True,
+			'quizzes': quizzes
+		}), 200
+	
+	except Exception as e:
+		return jsonify({
+			'success': False,
+			'error': f'Server error: {str(e)}'
+		}), 500
+
 
 if __name__ == "__main__":
 	# TODO: decide whether debug=True should stay on while developing.

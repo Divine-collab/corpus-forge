@@ -320,7 +320,171 @@ queryForm.addEventListener('submit', async event => {
 
 refreshStats.addEventListener('click', loadStats);
 
+// Quiz functionality
+const quizForm = document.getElementById('quizForm');
+const quizDocument = document.getElementById('quizDocument');
+const numQuestions = document.getElementById('numQuestions');
+const quizStatus = document.getElementById('quizStatus');
+const quizBox = document.getElementById('quizBox');
+const quizTitle = document.getElementById('quizTitle');
+const quizQuestionsContainer = document.getElementById('quizQuestionsContainer');
+const quizSubmitBtn = document.getElementById('quizSubmitBtn');
+const quizResults = document.getElementById('quizResults');
+
+let currentQuiz = null;
+
+quizForm.addEventListener('submit', async event => {
+	event.preventDefault();
+	const documentId = quizDocument.value;
+	const questionCount = parseInt(numQuestions.value);
+
+	if (!documentId) {
+		setStatus(quizStatus, 'Select a document first.', 'error');
+		return;
+	}
+
+	try {
+		setStatus(quizStatus, 'Generating quiz...');
+		quizBox.classList.add('hidden');
+
+		const response = await fetch('/generate_quiz', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				document_id: Number(documentId),
+				num_questions: questionCount
+			})
+		});
+		const data = await response.json();
+
+		if (!response.ok || !data.success) {
+			throw new Error(data.error || 'Quiz generation failed');
+		}
+
+		currentQuiz = {
+			id: data.quiz_id,
+			questions: data.questions
+		};
+
+		displayQuiz(data.questions);
+		quizBox.classList.remove('hidden');
+		setStatus(quizStatus, 'Quiz ready!', 'success');
+	} catch (error) {
+		setStatus(quizStatus, error.message, 'error');
+	}
+});
+
+function displayQuiz(questions) {
+	quizTitle.textContent = `Quiz - ${questions.length} Questions`;
+	quizQuestionsContainer.innerHTML = '';
+
+	questions.forEach((q, idx) => {
+		const questionDiv = document.createElement('div');
+		questionDiv.className = 'quiz-question';
+
+		const questionText = document.createElement('div');
+		questionText.className = 'quiz-question-text';
+		questionText.textContent = `${idx + 1}. ${q.question}`;
+		questionDiv.appendChild(questionText);
+
+		// Create options
+		const options = q.options || {};
+		['A', 'B', 'C', 'D'].forEach(optionKey => {
+			if (options[optionKey]) {
+				const optionDiv = document.createElement('div');
+				optionDiv.className = 'quiz-option';
+
+				const radioId = `q${idx}_${optionKey}`;
+				const radio = document.createElement('input');
+				radio.type = 'radio';
+				radio.id = radioId;
+				radio.name = `question_${idx}`;
+				radio.value = optionKey;
+
+				const label = document.createElement('label');
+				label.htmlFor = radioId;
+				label.textContent = `${optionKey}) ${options[optionKey]}`;
+
+				optionDiv.appendChild(radio);
+				optionDiv.appendChild(label);
+				questionDiv.appendChild(optionDiv);
+			}
+		});
+
+		quizQuestionsContainer.appendChild(questionDiv);
+	});
+
+	quizResults.classList.add('hidden');
+}
+
+quizSubmitBtn.addEventListener('click', async () => {
+	const answers = {};
+	const formElements = quizQuestionsContainer.querySelectorAll('input[type="radio"]:checked');
+
+	formElements.forEach(element => {
+		const questionIndex = element.name.split('_')[1];
+		answers[questionIndex] = element.value;
+	});
+
+	// Score the quiz
+	let score = 0;
+	const results = [];
+
+	currentQuiz.questions.forEach((q, idx) => {
+		const userAnswer = answers[idx];
+		const isCorrect = userAnswer === q.correct_answer;
+		if (isCorrect) score++;
+
+		results.push({
+			question: q.question,
+			userAnswer: userAnswer || 'Not answered',
+			correctAnswer: q.correct_answer,
+			isCorrect: isCorrect
+		});
+	});
+
+	// Display results
+	displayResults(results, score, currentQuiz.questions.length);
+});
+
+function displayResults(results, score, total) {
+	quizResults.innerHTML = `<h4>Results: ${score}/${total} (${Math.round((score/total)*100)}%)</h4>`;
+
+	results.forEach(result => {
+		const resultDiv = document.createElement('div');
+		resultDiv.className = `quiz-result-item ${result.isCorrect ? 'quiz-result-correct' : 'quiz-result-incorrect'}`;
+		
+		const statusText = result.isCorrect ? '✓ Correct' : '✗ Incorrect';
+		resultDiv.innerHTML = `
+			<strong>${result.question}</strong><br/>
+			${statusText}<br/>
+			Your answer: ${result.userAnswer} | Correct: ${result.correctAnswer}
+		`;
+
+		quizResults.appendChild(resultDiv);
+	});
+
+	quizResults.classList.remove('hidden');
+	window.scrollTo(0, quizResults.offsetTop - 100);
+}
+
+// Update quiz document select when documents load
+function syncQuizDocumentSelect() {
+	const activeIds = getActiveIds();
+	const quizDocSelect = document.getElementById('quizDocument');
+	quizDocSelect.innerHTML = '<option value="">Select a document</option>';
+	
+	const activeDocs = documentsCache.filter(doc => activeIds.includes(String(doc.file_id)));
+	activeDocs.forEach(doc => {
+		const option = document.createElement('option');
+		option.value = doc.file_id;
+		option.textContent = `${doc.file_name} (#${doc.file_id})`;
+		quizDocSelect.appendChild(option);
+	});
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 	await loadDocuments();
 	await loadStats();
+	syncQuizDocumentSelect();
 });
