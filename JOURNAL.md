@@ -1612,3 +1612,119 @@ Quiz generation is complete across all layers:
 - Styling ✓
 - JavaScript interaction ✓
 
+
+---
+
+## Entry 7: Flashcard Generation Feature - Layer 1 Core Feature
+
+**Timestamp:** 28 May 2026, 16:45 UTC
+
+**What was implemented:**
+Flashcard generation - a retrieval-grounded AI workflow that allows users to create study materials from documents.
+
+**Architecture & Design:**
+
+1. **Database Layer** (`schema_flashcards.sql`, `db.py`)
+   - Two-table design: `flashcard_sets` (metadata) + `flashcards` (individual cards)
+   - Foreign keys ensure referential integrity
+   - Cascade deletes clean up orphaned cards when sets are removed
+   - Indexed on document_id and created_at for fast queries
+
+2. **AI Layer** (`query_layer.py` - new methods)
+   - `generate_flashcards(document_text, num_cards)`: Main entry point
+   - Calls Gemini API with structured prompt for Q&A pairs
+   - Returns `{'success': bool, 'flashcards': [{'front': str, 'back': str}]}`
+   - `_parse_flashcards(text)`: Robust parser for "Card N Front:" / "Card N Back:" format
+   - Handles multi-line back text and continuation lines
+
+3. **API Layer** (`main.py` - new endpoints)
+   - `POST /generate_flashcards`: Create flashcard set from document + save to DB
+   - `GET /get_flashcard_set/<id>`: Retrieve set with all cards
+   - `GET /list_flashcard_sets/<doc_id>`: List all sets for a document
+   - Returns JSON with set metadata and card arrays
+
+4. **Frontend** (`templates/index.html`, `static/styles.css`, `static/app.js`)
+   - **Form**: Document selector, number of cards, optional set title
+   - **Display Grid**: Shows all flashcards as clickable previews
+   - **Study Interface**: 3D flip animation with CSS perspective transform
+   - **Navigation**: Previous/Next buttons with progress indicator
+   - **Interaction**: Click cards to flip, click grid items to jump to card
+
+**Key Technical Decisions:**
+
+1. **3D Flip Animation**: Used CSS `transform: rotateY(180deg)` + `perspective` for smooth 3D effect
+   - Better UX than instant text swap
+   - No external libraries required
+   - Accessible (click anywhere on card)
+
+2. **Two-Table Schema**: Instead of single denormalized table
+   - Enables querying all sets for a document efficiently
+   - Supports partial updates without full set recreation
+   - Cleaner data model: sets are containers for cards
+
+3. **Parsing Strategy**: Expected format differs from quiz (uses card numbers, not questions)
+   - More robust to formatting variations
+   - Supports multi-line back text naturally
+   - Handles continuation lines by checking for next card marker
+
+4. **Front/Back Terminology**: Used field names `front_text` and `back_text`
+   - Clearer than "question/answer" (since flashcards can be concept/definition too)
+   - Matches traditional flashcard psychology (study front first, check back)
+
+**Why Flashcards vs Quizzes:**
+- **Quizzes** (from Layer 1): Test knowledge, provide grading, check understanding
+- **Flashcards** (new): Enable learning through spaced repetition, self-paced study, long-term retention
+- Both are essential retrieval-grounded workflows; they serve different pedagogical purposes
+
+**Testing & Validation:**
+
+Implemented but pending MySQL startup:
+- [ ] Database tables creation (schema_flashcards.sql)
+- [ ] Full API flow with real Gemini API
+- [ ] UI interaction with live data
+- [ ] Parsing edge cases (multi-paragraph backs, special characters)
+
+**Integration Points:**
+- Reused existing document loading mechanism
+- Used standard Flask/JSON patterns from quiz feature
+- Extended db.py with consistent error handling patterns
+- Synchronized DOM updates across upload/quiz/flashcard features
+
+**Files Modified/Created:**
+- `query_layer.py`: +100 lines (2 new methods)
+- `db.py`: +150 lines (4 new CRUD functions)
+- `main.py`: +80 lines (3 new endpoints + imports)
+- `templates/index.html`: +50 lines (form + study interface)
+- `static/styles.css`: +120 lines (3D animation + grid + buttons)
+- `static/app.js`: +120 lines (form handler + display + navigation)
+- `schema_flashcards.sql`: Created (migration script)
+
+**Git Commit:**
+```
+commit e8436f3
+feat: implement flashcard generation feature
+- AI-powered flashcard generation from documents
+- New database tables, backend endpoints, frontend UI
+- 3D flip animation with navigation
+```
+
+**What's Next:**
+After MySQL startup:
+1. Run schema_flashcards.sql to create tables
+2. Test end-to-end flow with real Gemini API
+3. Verify parsing with various document types
+4. Move to next Layer 1 feature: Code Review Reports
+
+**Layer 1 Status Update:**
+- ✅ Corpus Ingestion (multi-format documents)
+- ✅ Corpus Management (add/remove/browse/select)
+- ✅ Retrieval-Grounded AI: Chat Q&A
+- ✅ Retrieval-Grounded AI: Quiz Generation
+- ✅ Retrieval-Grounded AI: Flashcard Generation (NEW)
+- ⏳ Code Review Reports (next)
+- ⏳ Architecture & Control Flow Reports (next)
+- ✅ Prompt Steering (4-parameter system)
+- ✅ Persistence (database across sessions)
+- ✅ Cost Observability (API usage dashboard)
+
+**Progress:** 3/6 retrieval workflows complete. 1 more feature until Layer 1 core is done.
