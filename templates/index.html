@@ -174,9 +174,7 @@
 		</section>
 	</div>
 
-	<script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
-</html>
+		<!-- Generate Flashcards -->
 		<section class="panel">
 			<h3>🎴 Generate Flashcards</h3>
 			<form id="flashcardForm" class="stack">
@@ -223,9 +221,27 @@
 				</div>
 			</div>
 		</section>
-</main>
-</div>
 
-<script src="{{ url_for("static", filename="app.js") }}"></script>
+		<!-- Static Word Cloud Panel (in case JS dynamic insertion fails) -->
+		<section id="vizPanel" class="panel">
+			<div class="panel-header">
+				<h2>Visualize: Word Cloud</h2>
+				<p>Generate a simple word cloud from a selected document's cleaned text.</p>
+			</div>
+			<div class="viz-controls">
+				<select id="vizDocumentSelect"><option value="">Select a document</option></select>
+				<label for="vizTopN">Top N:</label>
+				<input id="vizTopN" type="number" value="50" min="5" max="500" style="width:70px" />
+				<button id="vizGenerateBtn" class="primary">Generate Cloud</button>
+			</div>
+			<div id="vizStatus" class="status"></div>
+			<div id="wordCloudContainer" class="word-cloud-container"></div>
+			<div id="wordInfo" class="word-info hidden"></div>
+		</section>
+
+	</main>
+	</div>
+
+	<script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

@@ -623,5 +623,142 @@ document.addEventListener('DOMContentLoaded', async () => {
 	await loadStats();
 	syncQuizDocumentSelect();
 	syncFlashcardDocumentSelect();
+	createVizPanel();
+	syncVizDocumentSelect();
 });
+
+
+// -----------------------------
+// Word Cloud Visualization
+// -----------------------------
+function createVizPanel() {
+	const grid = document.querySelector('.grid');
+	if (!grid) return;
+
+	// Avoid duplicate panel
+	if (document.getElementById('vizPanel')) return;
+
+	const panel = document.createElement('section');
+	panel.className = 'panel';
+	panel.id = 'vizPanel';
+	panel.innerHTML = `
+		<div class="panel-header">
+			<h2>Visualize: Word Cloud</h2>
+			<p>Generate a simple word cloud from a selected document's cleaned text.</p>
+		</div>
+		<div class="viz-controls">
+			<select id="vizDocumentSelect"><option value="">Select a document</option></select>
+			<label for="vizTopN">Top N:</label>
+			<input id="vizTopN" type="number" value="50" min="5" max="500" style="width:70px" />
+			<button id="vizGenerateBtn" class="primary">Generate Cloud</button>
+		</div>
+		<div id="vizStatus" class="status"></div>
+		<div id="wordCloudContainer" class="word-cloud-container"></div>
+		<div id="wordInfo" class="word-info hidden"></div>
+	`;
+
+	// Insert near the end of the grid
+	grid.appendChild(panel);
+
+	// Wire up controls
+	document.getElementById('vizGenerateBtn').addEventListener('click', async () => {
+		const docId = document.getElementById('vizDocumentSelect').value;
+		const topN = parseInt(document.getElementById('vizTopN').value) || 50;
+		if (!docId) {
+			setStatus(document.getElementById('vizStatus'), 'Select a document first.', 'error');
+			return;
+		}
+
+		setStatus(document.getElementById('vizStatus'), 'Generating word cloud...');
+		try {
+			const resp = await fetch(`/visualize/word-cloud?document_id=${encodeURIComponent(docId)}&top_n=${topN}`);
+			const data = await resp.json();
+			if (!resp.ok || !data.success) throw new Error(data.error || 'Visualization failed');
+			renderWordCloud(data.word_counts || []);
+			setStatus(document.getElementById('vizStatus'), `Top ${data.word_counts.length} words shown.`, 'success');
+		} catch (err) {
+			setStatus(document.getElementById('vizStatus'), err.message, 'error');
+			console.error(err);
+		}
+	});
+
+	// Click-to-copy or info panel
+	document.getElementById('wordCloudContainer').addEventListener('click', (e) => {
+		const target = e.target.closest('.wc-word');
+		if (!target) return;
+		const word = target.dataset.word;
+		const count = target.dataset.count;
+		// show quick info and copy to clipboard
+		const info = document.getElementById('wordInfo');
+		info.innerHTML = `<strong>${word}</strong> — ${count} occurrences — <button id="copyWordBtn">Copy</button>`;
+		info.classList.remove('hidden');
+		const copyBtn = document.getElementById('copyWordBtn');
+		copyBtn.addEventListener('click', () => {
+			navigator.clipboard?.writeText(word).then(() => {
+				setStatus(document.getElementById('vizStatus'), `Copied "${word}" to clipboard.`, 'success');
+			}).catch(() => setStatus(document.getElementById('vizStatus'), 'Copy failed', 'error'));
+		});
+	});
+}
+
+function syncVizDocumentSelect() {
+	const select = document.getElementById('vizDocumentSelect');
+	if (!select) return;
+	select.innerHTML = '<option value="">Select a document</option>';
+
+	// Prefer active documents
+	const activeIds = getActiveIds();
+	const activeDocs = documentsCache.filter(doc => activeIds.includes(String(doc.file_id)));
+	const docsToShow = activeDocs.length ? activeDocs : documentsCache;
+
+	docsToShow.forEach(doc => {
+		const opt = document.createElement('option');
+		opt.value = doc.file_id;
+		opt.textContent = `${doc.file_name} (#${doc.file_id})`;
+		select.appendChild(opt);
+	});
+
+	// If no active document exists in storage, auto-select the first available document
+	// to improve discoverability for new users. This will also update the global active list.
+	const currentlyActive = getActiveIds();
+	if ((!currentlyActive || currentlyActive.length === 0) && docsToShow.length > 0) {
+		const firstId = String(docsToShow[0].file_id);
+		setActiveIds([firstId]);
+		syncActiveUI();
+		// select the first option
+		select.value = firstId;
+	}
+}
+
+function renderWordCloud(wordCounts) {
+	const container = document.getElementById('wordCloudContainer');
+	container.innerHTML = '';
+	if (!wordCounts.length) {
+		container.innerHTML = '<p class="muted">No words to display.</p>';
+		return;
+	}
+
+	// Determine font-size scale
+	const counts = wordCounts.map(w => w.count);
+	const max = Math.max(...counts);
+	const min = Math.min(...counts);
+
+	wordCounts.forEach(({word, count}) => {
+		const span = document.createElement('span');
+		span.className = 'wc-word';
+		span.textContent = word;
+		span.dataset.word = word;
+		span.dataset.count = String(count);
+
+		// Normalize font-size between 14px and 48px
+		const size = min === max ? 20 : Math.round(14 + (count - min) / (max - min) * (48 - 14));
+		span.style.fontSize = `${size}px`;
+		span.style.margin = '6px';
+		span.style.display = 'inline-block';
+		span.style.cursor = 'pointer';
+		span.title = `${count} occurrences`;
+
+		container.appendChild(span);
+	});
+}
 

@@ -7,6 +7,8 @@ POST /upload endpoint step by step.
 
 import os
 import tempfile
+import re
+from collections import Counter
 
 from flask import Flask, jsonify, render_template, request
 from werkzeug.utils import secure_filename
@@ -35,6 +37,14 @@ app = Flask(__name__)
 
 
 UPLOAD_FOLDER = tempfile.gettempdir()
+
+# Minimal stopwords list for word cloud preprocessing. Extend as needed.
+STOPWORDS = {
+	'the', 'and', 'of', 'to', 'a', 'in', 'is', 'it', 'that', 'for', 'on', 'with',
+	'as', 'are', 'this', 'be', 'by', 'or', 'an', 'from', 'at', 'we', 'have', 'has',
+	'was', 'were', 'not', 'but', 'which', 'can', 'also', 'will', 'their', 'they',
+	'its', 'I', 'you', 'he', 'she', 'them', 'his', 'her'
+}
 
 
 @app.route("/")
@@ -122,79 +132,6 @@ def upload_file():
 			os.remove(temp_file.name)
 		except Exception:
 			pass
-
-
-@app.route("/search", methods=["POST"])
-def search():
-	"""
-	Search endpoint for finding documents by keyword and filters.
-	
-	Request JSON parameters:
-	{
-		"keyword": "string" (required if no date filters),
-		"file_type": ".pdf" (optional),
-		"start_date": "2026-05-01" (optional, YYYY-MM-DD),
-		"end_date": "2026-05-31" (optional, YYYY-MM-DD)
-	}
-	
-	Returns:
-	{
-		"success": bool,
-		"total_found": int,
-		"query": string,
-		"results": [
-			{
-				"file_id": int,
-				"file_name": string,
-				"file_type": string,
-				"file_size": int,
-				"word_count": int,
-				"upload_date": string,
-				"cleaned_text_preview": string,
-				"match_score": float
-			}
-		],
-		"error": string (if error)
-	}
-	"""
-	try:
-		# Get JSON request data
-		data = request.get_json()
-		if not data:
-			return jsonify({'success': False, 'error': 'Request must be JSON'}), 400
-		
-		# Extract search parameters
-		keyword = data.get('keyword', '').strip()
-		file_type = data.get('file_type')
-		start_date = data.get('start_date')
-		end_date = data.get('end_date')
-		
-		# Create search query
-		query = SearchQuery(
-			keyword=keyword,
-			file_type=file_type,
-			start_date=start_date,
-			end_date=end_date
-		)
-		
-		# Validate query
-		if not query.is_valid():
-			return jsonify({
-				'success': False,
-				'error': 'Query must include keyword and/or date range'
-			}), 400
-		
-		# Execute search
-		result = SearchLayer.search(query)
-		
-		# Return results with appropriate status code
-		if result['success']:
-			return jsonify(result), 200
-		else:
-			return jsonify(result), 400
-	
-	except Exception as e:
-		return jsonify({'success': False, 'error': f'Search error: {str(e)}'}), 500
 
 
 @app.route("/list-documents", methods=["GET"])
@@ -407,6 +344,51 @@ def stats():
 	except Exception as e:
 		return jsonify({'success': False, 'error': f'Stats error: {str(e)}'}), 500
 	
+
+
+	@app.route("/visualize/word-cloud", methods=["GET"])
+	def visualize_word_cloud():
+		"""
+		Generate word frequency data for a word cloud from a document's cleaned text.
+		Query parameters:
+		- document_id (int, required)
+		- top_n (int, optional, default 50)
+	
+		Returns JSON:
+		{ success: bool, word_counts: [{word: str, count: int}, ...] }
+		"""
+		try:
+			# Validate query parameters
+			document_id = request.args.get('document_id', type=int)
+			if document_id is None:
+				return jsonify({'success': False, 'error': 'document_id query parameter required'}), 400
+			top_n = request.args.get('top_n', default=50, type=int)
+
+			# Fetch document text (db function can return dict or raw string)
+			doc = get_document_text(document_id)
+			if doc is None:
+				return jsonify({'success': False, 'error': f'Document with ID {document_id} not found'}), 404
+			if isinstance(doc, dict):
+				text = doc.get('cleaned_text') or doc.get('raw_text', '')
+			else:
+				text = doc or ''
+
+			# Simple preprocessing: tokenize, lowercase, remove stopwords/punctuation/numbers
+			words = re.findall(r"\b\w+\b", text.lower())
+			filtered = [w for w in words if w not in STOPWORDS and len(w) > 1 and not w.isdigit()]
+
+			# Compute frequencies
+			freq = Counter(filtered)
+			top = freq.most_common(top_n)
+
+			return jsonify({
+				'success': True,
+				'word_counts': [{'word': w, 'count': c} for w, c in top]
+			}), 200
+
+		except Exception as e:
+			return jsonify({'success': False, 'error': f'Word cloud error: {str(e)}'}), 500
+
 
 @app.route("/generate_quiz", methods=["POST"])
 def generate_quiz():

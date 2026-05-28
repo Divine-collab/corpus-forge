@@ -635,4 +635,34 @@ button:hover {
 .hidden {
 	display: none !important;
 }
+
+/* Word Cloud */
+.word-cloud-container {
+	padding: 12px;
+	background: rgba(15, 23, 42, 0.35);
+	border: 1px solid var(--panel-border);
+	border-radius: 8px;
+	min-height: 120px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.wc-word {
+	transition: transform 0.12s ease, opacity 0.12s ease;
+	color: var(--text);
+}
+
+.wc-word:hover {
+	transform: translateY(-4px) scale(1.05);
+	color: var(--accent);
+}
+
+.word-info {
+	margin-top: 8px;
+	padding: 8px 12px;
+	background: rgba(2,6,23,0.6);
+	border: 1px solid var(--panel-border);
+	border-radius: 8px;
+}
 ```
