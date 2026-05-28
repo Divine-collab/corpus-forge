@@ -1612,3 +1612,8 @@ Quiz generation is complete across all layers:
 - Styling ✓
 - JavaScript interaction ✓
 
+
+### **New Interaction**
+- **Hook Version**: 1.02
+- **Date**: 28-05-2026 03:40
+- **Prompt**: We have a working Flask + Gemini AI app. For our Layer 2 challenge I need to implement Prompt Engineering. Guide me step by step to iteratively improve prompts for quiz and flashcard generation â€” reducing hallucinations and improving output quality. I need to document each prompt version and compare results.

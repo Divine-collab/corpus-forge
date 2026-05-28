@@ -64,3 +64,6 @@
 ### 26-05-2026 01:08
 - **Prompt**: Add a GET /stats endpoint in main.py that returns: - total number of API requests made - total input tokens used - total output tokens used - total tokens overall  Read this data from the api_usage_logs table in MySQL. Also add a function get_api_stats() in db.py to fetch  these totals.
 
+### 28-05-2026 03:40
+- **Prompt**: We have a working Flask + Gemini AI app. For our Layer 2 challenge I need to implement Prompt Engineering. Guide me step by step to iteratively improve prompts for quiz and flashcard generation â€” reducing hallucinations and improving output quality. I need to document each prompt version and compare results.
+
