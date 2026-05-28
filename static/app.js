@@ -483,8 +483,145 @@ function syncQuizDocumentSelect() {
 	});
 }
 
+// ─────────────────────────────────────────
+// FLASHCARD FUNCTIONALITY
+// ─────────────────────────────────────────
+
+const flashcardForm = document.getElementById('flashcardForm');
+const flashcardDocument = document.getElementById('flashcardDocument');
+const numCards = document.getElementById('numCards');
+const flashcardTitle = document.getElementById('flashcardTitle');
+const flashcardStatus = document.getElementById('flashcardStatus');
+const flashcardBox = document.getElementById('flashcardBox');
+const flashcardSetTitle = document.getElementById('flashcardSetTitle');
+const flashcardListContainer = document.getElementById('flashcardListContainer');
+const flashcardStudyMode = document.getElementById('flashcardStudyMode');
+
+let currentFlashcards = [];
+let currentCardIndex = 0;
+
+flashcardForm.addEventListener('submit', async (e) => {
+	e.preventDefault();
+	flashcardStatus.textContent = 'Generating flashcards...';
+	flashcardStatus.className = 'status loading';
+
+	const docId = flashcardDocument.value;
+	const cardCount = parseInt(numCards.value) || 10;
+	const setTitle = flashcardTitle.value || `Flashcard Set #${docId}`;
+
+	try {
+		const response = await fetch('/generate_flashcards', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				document_id: parseInt(docId),
+				num_cards: cardCount,
+				set_title: setTitle
+			})
+		});
+
+		const data = await response.json();
+
+		if (!response.ok || !data.success) {
+			throw new Error(data.error || 'Failed to generate flashcards');
+		}
+
+		currentFlashcards = data.flashcards;
+		currentCardIndex = 0;
+
+		flashcardSetTitle.textContent = setTitle;
+		displayFlashcardList(data.flashcards);
+		displayFlashcard(0);
+		
+		flashcardBox.classList.remove('hidden');
+		flashcardStatus.textContent = 'Flashcards generated!';
+		flashcardStatus.className = 'status success';
+	} catch (error) {
+		flashcardStatus.textContent = `Error: ${error.message}`;
+		flashcardStatus.className = 'status error';
+		console.error(error);
+	}
+});
+
+function displayFlashcardList(flashcards) {
+	flashcardListContainer.innerHTML = '';
+	
+	flashcards.forEach((card, idx) => {
+		const cardPreview = document.createElement('div');
+		cardPreview.className = 'flashcard-item-preview';
+		cardPreview.innerHTML = `
+			<div class="flashcard-item-front">${card.front}</div>
+			<div style="font-size: 0.85rem; opacity: 0.9; margin-top: 0.5rem;">Card ${idx + 1}/${flashcards.length}</div>
+		`;
+		cardPreview.addEventListener('click', () => {
+			currentCardIndex = idx;
+			displayFlashcard(idx);
+		});
+		flashcardListContainer.appendChild(cardPreview);
+	});
+}
+
+function displayFlashcard(index) {
+	if (index < 0 || index >= currentFlashcards.length) return;
+
+	currentCardIndex = index;
+	const card = currentFlashcards[index];
+
+	// Reset flip state
+	const flipContainer = document.getElementById('flashcardFlipContainer');
+	flipContainer.classList.remove('flipped');
+
+	// Update content
+	document.getElementById('flashcardFrontText').textContent = card.front;
+	document.getElementById('flashcardBackText').textContent = card.back;
+	document.getElementById('cardProgress').textContent = `${index + 1} / ${currentFlashcards.length}`;
+
+	// Show study mode
+	flashcardStudyMode.classList.remove('hidden');
+
+	// Update button states
+	document.getElementById('prevCardBtn').disabled = index === 0;
+	document.getElementById('nextCardBtn').disabled = index === currentFlashcards.length - 1;
+}
+
+// Flip card on click
+document.addEventListener('click', (e) => {
+	const flipContainer = document.getElementById('flashcardFlipContainer');
+	if (flipContainer && flipContainer.contains(e.target) && !e.target.classList.contains('btn')) {
+		flipContainer.classList.toggle('flipped');
+	}
+});
+
+// Navigation buttons
+document.getElementById('prevCardBtn')?.addEventListener('click', () => {
+	if (currentCardIndex > 0) {
+		displayFlashcard(currentCardIndex - 1);
+	}
+});
+
+document.getElementById('nextCardBtn')?.addEventListener('click', () => {
+	if (currentCardIndex < currentFlashcards.length - 1) {
+		displayFlashcard(currentCardIndex + 1);
+	}
+});
+
+// Sync flashcard document select with main document list
+function syncFlashcardDocumentSelect() {
+	const flashcardDocSelect = document.getElementById('flashcardDocument');
+	flashcardDocSelect.innerHTML = '<option value="">Select a document</option>';
+	
+	documentsCache.forEach(doc => {
+		const option = document.createElement('option');
+		option.value = doc.file_id;
+		option.textContent = `${doc.file_name} (#${doc.file_id})`;
+		flashcardDocSelect.appendChild(option);
+	});
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
 	await loadDocuments();
 	await loadStats();
 	syncQuizDocumentSelect();
+	syncFlashcardDocumentSelect();
 });
+
