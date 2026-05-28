@@ -134,5 +134,68 @@ class TestQueryMethod(unittest.TestCase):
             self.assertIn('answer', result_success)
 
 
+class TestPromptVersionedGeneration(unittest.TestCase):
+    """Test quiz and flashcard prompt version selection."""
+
+    def setUp(self):
+        with patch('query_layer.genai.configure'):
+            self.layer = AIQueryLayer(api_key='test-key')
+
+    def test_generate_quiz_default_version_is_v2(self):
+        with patch.object(self.layer.model, 'generate_content') as mock_gen:
+            mock_response = MagicMock()
+            mock_response.text = (
+                "Q1: What is the topic?\n"
+                "A) Topic\n"
+                "B) Noise\n"
+                "C) Other\n"
+                "D) Extra\n"
+                "Answer: A"
+            )
+            mock_gen.return_value = mock_response
+
+            result = self.layer.generate_quiz('Document text about a topic.', 1)
+
+            prompt = mock_gen.call_args[0][0]
+            self.assertIn('Do not invent names', prompt)
+            self.assertIn('Quality check before answering', prompt)
+            self.assertEqual(result['prompt_version'], 'v2')
+
+    def test_generate_quiz_can_use_v1_prompt(self):
+        with patch.object(self.layer.model, 'generate_content') as mock_gen:
+            mock_response = MagicMock()
+            mock_response.text = (
+                "Q1: What is the topic?\n"
+                "A) Topic\n"
+                "B) Noise\n"
+                "C) Other\n"
+                "D) Extra\n"
+                "Answer: A"
+            )
+            mock_gen.return_value = mock_response
+
+            self.layer.generate_quiz('Document text about a topic.', 1, prompt_version='v1')
+
+            prompt = mock_gen.call_args[0][0]
+            self.assertIn('Based on the document below, generate exactly 1 multiple-choice quiz questions.', prompt)
+            self.assertNotIn('Hard rules:', prompt)
+
+    def test_generate_flashcards_default_version_is_v2(self):
+        with patch.object(self.layer.model, 'generate_content') as mock_gen:
+            mock_response = MagicMock()
+            mock_response.text = (
+                "Card 1 Front: Topic\n"
+                "Card 1 Back: Topic explanation"
+            )
+            mock_gen.return_value = mock_response
+
+            result = self.layer.generate_flashcards('Document text about a topic.', 1)
+
+            prompt = mock_gen.call_args[0][0]
+            self.assertIn('Hard rules:', prompt)
+            self.assertIn('Do not invent terminology', prompt)
+            self.assertEqual(result['prompt_version'], 'v2')
+
+
 if __name__ == '__main__':
     unittest.main()

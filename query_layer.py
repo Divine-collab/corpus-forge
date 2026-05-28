@@ -37,6 +37,8 @@ class AIQueryLayer:
     """
     
     MAX_DOCUMENT_LENGTH = 20000  # characters, ~5,000 tokens
+    DEFAULT_PROMPT_VERSION = 'v2'
+    SUPPORTED_PROMPT_VERSIONS = {'v1', 'v2'}
     
     def __init__(self, api_key=None):
         """
@@ -137,6 +139,132 @@ Keep your response {creativity_desc}.
 {base_prompt}"""
         
         return steered_prompt
+
+    def _normalize_prompt_version(self, prompt_version):
+        """
+        Normalize prompt version values and fall back to the default version.
+        """
+        if not isinstance(prompt_version, str):
+            return self.DEFAULT_PROMPT_VERSION
+
+        version = prompt_version.strip().lower()
+        if version not in self.SUPPORTED_PROMPT_VERSIONS:
+            return self.DEFAULT_PROMPT_VERSION
+        return version
+
+    def _build_quiz_prompt(self, truncated_doc, num_questions, prompt_version=None):
+        """
+        Build a quiz generation prompt using a named version.
+        """
+        version = self._normalize_prompt_version(prompt_version)
+
+        if version == 'v1':
+            return f"""Based on the document below, generate exactly {num_questions} multiple-choice quiz questions.
+
+For each question, provide:
+1. Question text
+2. Four options (A, B, C, D)
+3. Correct answer (A, B, C, or D)
+
+Format each question like this:
+Q1: [Question text]
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+Answer: [A/B/C/D]
+
+Document:
+{truncated_doc}
+
+Generate the quiz:"""
+
+        return f"""You are generating a quiz from the document below.
+
+Hard rules:
+- Use only facts that are explicitly stated or clearly supported by the document.
+- Do not invent names, dates, numbers, examples, or concepts that are not present.
+- Each question must be answerable from the document alone.
+- Create exactly {num_questions} distinct multiple-choice questions that cover different parts of the document.
+- Every question must have exactly one best answer and three plausible distractors.
+- Distractors must sound reasonable but must be false according to the document.
+- Prefer high-confidence concepts over obscure details.
+- If the document is short, reuse different supported concepts rather than adding unsupported facts.
+- Do not include markdown fences, bullets outside the required format, or explanations.
+
+Quality check before answering:
+1. Verify each correct answer is supported by the document.
+2. Verify all four options are distinct.
+3. Verify the question wording is unambiguous.
+
+Required format for every question:
+Q1: [Question text]
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+Answer: [A/B/C/D]
+
+Document:
+{truncated_doc}
+
+Generate the quiz now:"""
+
+    def _build_flashcard_prompt(self, truncated_doc, num_cards, prompt_version=None):
+        """
+        Build a flashcard generation prompt using a named version.
+        """
+        version = self._normalize_prompt_version(prompt_version)
+
+        if version == 'v1':
+            return f"""Based on the document below, generate exactly {num_cards} flashcard question-answer pairs.
+
+For each flashcard, provide:
+1. Front (question/concept to study)
+2. Back (answer/explanation)
+
+Format each card like this:
+Card 1 Front: [Question or concept]
+Card 1 Back: [Comprehensive answer or explanation]
+
+Card 2 Front: [Question or concept]
+Card 2 Back: [Comprehensive answer or explanation]
+
+... and so on
+
+Document:
+{truncated_doc}
+
+Generate the flashcards:"""
+
+        return f"""You are generating flashcards from the document below.
+
+Hard rules:
+- Use only information that is explicitly stated or clearly supported by the document.
+- Do not invent terminology, facts, examples, or explanations that are not in the document.
+- Create exactly {num_cards} flashcards that cover different important ideas from the document.
+- Fronts should be short study prompts: a term, concept, function, process, or question grounded in the document.
+- Backs should be concise but complete answers, using the document language where possible.
+- Prefer one idea per card instead of combining multiple concepts.
+- If the document is short, vary the card style (definition, purpose, step, comparison) without adding unsupported facts.
+- Do not include markdown fences, bullets outside the required format, or extra commentary.
+
+Quality check before answering:
+1. Verify each front maps to a real topic in the document.
+2. Verify each back can be justified from the source.
+3. Verify the cards are not duplicates.
+
+Required format for every card:
+Card 1 Front: [Question or concept]
+Card 1 Back: [Concise answer or explanation]
+
+Card 2 Front: [Question or concept]
+Card 2 Back: [Concise answer or explanation]
+
+Document:
+{truncated_doc}
+
+Generate the flashcards now:"""
     
     def query(self, user_question, document_text, steering=None):
         """
@@ -229,7 +357,7 @@ Answer:"""
                 'error': f'Gemini API error: {str(e)}'
             }
     
-    def generate_quiz(self, document_text, num_questions=5):
+    def generate_quiz(self, document_text, num_questions=5, prompt_version=None):
         """
         Generate quiz questions from a document using Gemini.
         
@@ -255,25 +383,7 @@ Answer:"""
             truncated_doc = self._truncate_document(document_text)
             
             # Build prompt for quiz generation
-            prompt = f"""Based on the document below, generate exactly {num_questions} multiple-choice quiz questions.
-
-For each question, provide:
-1. Question text
-2. Four options (A, B, C, D)
-3. Correct answer (A, B, C, or D)
-
-Format each question like this:
-Q1: [Question text]
-A) [Option A]
-B) [Option B]
-C) [Option C]
-D) [Option D]
-Answer: [A/B/C/D]
-
-Document:
-{truncated_doc}
-
-Generate the quiz:"""
+            prompt = self._build_quiz_prompt(truncated_doc, num_questions, prompt_version=prompt_version)
             
             # Call Gemini
             response = self.model.generate_content(prompt)
@@ -296,7 +406,8 @@ Generate the quiz:"""
             
             return {
                 'success': True,
-                'questions': questions
+                'questions': questions,
+                'prompt_version': self._normalize_prompt_version(prompt_version)
             }
         
         except ValueError as e:
@@ -349,7 +460,7 @@ Generate the quiz:"""
                 # Look for answer line
                 if i < len(lines):
                     answer_line = lines[i].strip()
-                    if answer_line and 'Answer:' in answer_line.upper():
+                    if answer_line and 'answer:' in answer_line.lower():
                         answer = answer_line.split(':')[1].strip().upper()
                         if answer in 'ABCD':
                             current_question['correct_answer'] = answer
@@ -362,7 +473,7 @@ Generate the quiz:"""
         
         return questions
     
-    def generate_flashcards(self, document_text, num_cards=10):
+    def generate_flashcards(self, document_text, num_cards=10, prompt_version=None):
         """
         Generate flashcard Q&A pairs from document text using Gemini.
         
@@ -384,25 +495,7 @@ Generate the quiz:"""
             truncated_doc = self._truncate_document(document_text)
             
             # Build prompt for flashcard generation
-            prompt = f"""Based on the document below, generate exactly {num_cards} flashcard question-answer pairs.
-
-For each flashcard, provide:
-1. Front (question/concept to study)
-2. Back (answer/explanation)
-
-Format each card like this:
-Card 1 Front: [Question or concept]
-Card 1 Back: [Comprehensive answer or explanation]
-
-Card 2 Front: [Question or concept]
-Card 2 Back: [Comprehensive answer or explanation]
-
-... and so on
-
-Document:
-{truncated_doc}
-
-Generate the flashcards:"""
+            prompt = self._build_flashcard_prompt(truncated_doc, num_cards, prompt_version=prompt_version)
             
             # Call Gemini
             response = self.model.generate_content(prompt)
@@ -425,7 +518,8 @@ Generate the flashcards:"""
             
             return {
                 'success': True,
-                'flashcards': flashcards
+                'flashcards': flashcards,
+                'prompt_version': self._normalize_prompt_version(prompt_version)
             }
         
         except ValueError as e:
@@ -456,7 +550,7 @@ Generate the flashcards:"""
             line = lines[i].strip()
             
             # Look for "Card N Front:" pattern
-            if line and 'Front:' in line.lower() and any(c.isdigit() for c in line):
+            if line and 'front:' in line.lower() and any(c.isdigit() for c in line):
                 # Extract front text
                 parts = line.split('Front:', 1)
                 if len(parts) > 1:
@@ -466,7 +560,7 @@ Generate the flashcards:"""
                     i += 1
                     while i < len(lines):
                         back_line = lines[i].strip()
-                        if back_line and 'Back:' in back_line.lower():
+                        if back_line and 'back:' in back_line.lower():
                             # Extract back text (could be multi-line)
                             back_parts = back_line.split('Back:', 1)
                             if len(back_parts) > 1:

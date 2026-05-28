@@ -417,6 +417,7 @@ def generate_quiz():
 	{
 		"document_id": int (required),
 		"num_questions": int (optional, default 5)
+		"prompt_version": string (optional, default "v2")
 	}
 	
 	Returns:
@@ -434,6 +435,7 @@ def generate_quiz():
 		
 		document_id = data.get('document_id')
 		num_questions = data.get('num_questions', 5)
+		prompt_version = data.get('prompt_version', 'v2')
 		
 		if document_id is None:
 			return jsonify({'success': False, 'error': 'document_id is required'}), 400
@@ -451,7 +453,7 @@ def generate_quiz():
 		
 		# Generate quiz using AI layer
 		ai_layer = AIQueryLayer()
-		result = ai_layer.generate_quiz(document_text, num_questions)
+		result = ai_layer.generate_quiz(document_text, num_questions, prompt_version=prompt_version)
 		
 		if not result['success']:
 			return jsonify({
@@ -481,7 +483,8 @@ def generate_quiz():
 		return jsonify({
 			'success': True,
 			'quiz_id': quiz_id,
-			'questions': result['questions']
+			'questions': result['questions'],
+			'prompt_version': result.get('prompt_version', 'v2')
 		}), 200
 	
 	except Exception as e:
@@ -567,7 +570,8 @@ def generate_flashcards():
 	{
 		"document_id": <id>,
 		"num_cards": <int>,
-		"set_title": <optional string>
+		"set_title": <optional string>,
+		"prompt_version": <optional string>
 	}
 	
 	Returns:
@@ -586,6 +590,7 @@ def generate_flashcards():
 		document_id = data.get('document_id')
 		num_cards = data.get('num_cards', 10)
 		set_title = data.get('set_title', f'Flashcard Set #{document_id}')
+		prompt_version = data.get('prompt_version', 'v2')
 		
 		if not document_id:
 			return jsonify({'success': False, 'error': 'document_id required'}), 400
@@ -603,7 +608,7 @@ def generate_flashcards():
 		except ValueError as e:
 			return jsonify({'success': False, 'error': str(e)}), 500
 		
-		result = ai_layer.generate_flashcards(document_text, num_cards)
+		result = ai_layer.generate_flashcards(document_text, num_cards, prompt_version=prompt_version)
 		
 		if not result['success']:
 			return jsonify(result), 400
@@ -622,7 +627,8 @@ def generate_flashcards():
 		return jsonify({
 			'success': True,
 			'flashcard_set_id': set_id,
-			'flashcards': flashcards
+			'flashcards': flashcards,
+			'prompt_version': result.get('prompt_version', 'v2')
 		}), 201
 	
 	except Exception as e:
