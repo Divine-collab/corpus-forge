@@ -79,3 +79,6 @@
 ### 28-05-2026 04:00
 - **Prompt**: give me the todos functions i will try to implement
 
+### 28-05-2026 04:03
+- **Prompt**: help me with the implementation its too hard
+
