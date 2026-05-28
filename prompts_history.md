@@ -94,3 +94,6 @@
 ### 28-05-2026 04:19
 - **Prompt**: generate cloud isnt wokring
 
+### 28-05-2026 04:21
+- **Prompt**: select a document of word cloud isnt working it doesnt list the active documents
+
